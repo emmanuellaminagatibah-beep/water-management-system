@@ -1,19 +1,277 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0d3942">
+    <title>Sign in | AquaFlow</title>
+    <style>
+        :root {
+            --ink: #102f35;
+            --muted: #6d8080;
+            --paper: #f4f8f6;
+            --white: #ffffff;
+            --teal: #0d3942;
+            --aqua: #65c8c0;
+            --line: #d9e6e2;
+            --coral: #d96855;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            color: var(--ink);
+            background: var(--paper);
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        }
+
+        .login-shell {
+            display: grid;
+            grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
+            width: min(940px, 100%);
+            min-height: 590px;
+            overflow: hidden;
+            background: var(--white);
+            box-shadow: 0 24px 70px rgba(16, 47, 53, 0.14);
+        }
+
+        .welcome-panel {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 44px;
+            overflow: hidden;
+            color: var(--white);
+            background: var(--teal);
+        }
+
+        .welcome-panel::after {
+            position: absolute;
+            right: -88px;
+            bottom: -95px;
+            width: 285px;
+            height: 285px;
+            border: 1px solid rgba(101, 200, 192, 0.55);
+            border-radius: 50%;
+            box-shadow: 0 0 0 28px rgba(101, 200, 192, 0.08), 0 0 0 56px rgba(101, 200, 192, 0.06);
+            content: "";
+        }
+
+        .brand {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .brand-mark {
+            display: grid;
+            width: 38px;
+            height: 38px;
+            place-items: center;
+            color: var(--teal);
+            background: var(--aqua);
+            border-radius: 50% 50% 50% 8px;
+            font-size: 1.15rem;
+            transform: rotate(-45deg);
+        }
+
+        .brand-mark span { transform: rotate(45deg); }
+
+        .welcome-copy {
+            position: relative;
+            z-index: 1;
+            max-width: 310px;
+        }
+
+        .welcome-copy p {
+            margin: 0 0 18px;
+            color: var(--aqua);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-family: Georgia, serif;
+            font-size: clamp(2.7rem, 5vw, 4.5rem);
+            font-weight: 400;
+            line-height: 0.98;
+            letter-spacing: 0;
+        }
+
+        .welcome-copy .description {
+            margin: 24px 0 0;
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 0.98rem;
+            line-height: 1.7;
+        }
+
+        .panel-note {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.78rem;
+        }
+
+        .form-panel {
+            display: flex;
+            align-items: center;
+            padding: 56px clamp(28px, 7vw, 78px);
+        }
+
+        .form-content { width: 100%; max-width: 360px; margin: auto; }
+
+        .eyebrow {
+            margin: 0 0 10px;
+            color: var(--coral);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .form-heading {
+            margin: 0;
+            font-family: Georgia, serif;
+            font-size: 2.25rem;
+            font-weight: 400;
+            letter-spacing: 0;
+        }
+
+        .form-intro {
+            margin: 12px 0 34px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .alert {
+            margin-bottom: 22px;
+            padding: 12px 14px;
+            color: #8d3429;
+            background: #fff0ec;
+            border-left: 3px solid var(--coral);
+            font-size: 0.88rem;
+        }
+
+        .field { margin-bottom: 21px; }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--ink);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 15px;
+            color: var(--ink);
+            background: #fbfdfc;
+            border: 1px solid var(--line);
+            border-radius: 2px;
+            font: inherit;
+            outline: none;
+            transition: border-color 160ms ease, box-shadow 160ms ease;
+        }
+
+        input:focus {
+            border-color: var(--aqua);
+            box-shadow: 0 0 0 3px rgba(101, 200, 192, 0.2);
+        }
+
+        button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 15px 20px;
+            color: var(--white);
+            background: var(--teal);
+            border: 0;
+            border-radius: 2px;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+            transition: background 160ms ease, transform 160ms ease;
+        }
+
+        button:hover { background: #185560; transform: translateY(-1px); }
+        button:focus-visible { outline: 3px solid var(--aqua); outline-offset: 3px; }
+
+        .register-prompt {
+            margin: 28px 0 0;
+            color: var(--muted);
+            font-size: 0.88rem;
+            text-align: center;
+        }
+
+        .register-prompt a { color: var(--teal); font-weight: 700; }
+
+        @media (max-width: 700px) {
+            body { padding: 0; }
+            .login-shell { display: block; min-height: 100vh; }
+            .welcome-panel { min-height: 290px; padding: 28px; }
+            .welcome-copy { margin-top: 40px; }
+            .welcome-copy h1 { font-size: 3rem; }
+            .welcome-copy .description, .panel-note { display: none; }
+            .form-panel { min-height: calc(100vh - 290px); padding: 42px 28px; }
+        }
+    </style>
 </head>
 <body>
-    <h1>Login</h1>
-    {% if error %}<p style="color: red;">{{ error }}</p>{% endif %}
-    <form method="post">
-        {% csrf_token %}
-        <label>Username</label>
-        <input type="text" name="username" required><br>
-        <label>Password</label>
-        <input type="password" name="password" required><br>
-        <button type="submit">Login</button>
-    </form>
+    <main class="login-shell">
+        <section class="welcome-panel" aria-label="AquaFlow introduction">
+            <div class="brand"><span class="brand-mark" aria-hidden="true"><span>+</span></span> AquaFlow</div>
+            <div class="welcome-copy">
+                <p>Water, managed well.</p>
+                <h1>Welcome<br>back.</h1>
+                <p class="description">Keep every customer, delivery, and drop moving in the right direction.</p>
+            </div>
+            <p class="panel-note">A calm view of a complex system.</p>
+        </section>
+
+        <section class="form-panel">
+            <div class="form-content">
+                <p class="eyebrow">Account access</p>
+                <h2 class="form-heading">Sign in to continue</h2>
+                <p class="form-intro">Enter your account details to open your management dashboard.</p>
+
+                {% if error %}
+                    <p class="alert" role="alert">{{ error }}</p>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="field">
+                        <label for="username">Username</label>
+                        <input id="username" type="text" name="username" autocomplete="username" required autofocus>
+                    </div>
+                    <div class="field">
+                        <label for="password">Password</label>
+                        <input id="password" type="password" name="password" autocomplete="current-password" required>
+                    </div>
+                    <button type="submit">Sign in</button>
+                </form>
+
+                <p class="register-prompt">New to AquaFlow? <a href="{% url 'register' %}">Create an account</a></p>
+            </div>
+        </section>
+    </main>
 </body>
 </html>
