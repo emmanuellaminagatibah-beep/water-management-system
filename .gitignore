@@ -1,0 +1,7 @@
+env/
+__pycache__/
+*.py[cod]
+WMS/db.sqlite3
+.env
+.env.*
+!.env.example
