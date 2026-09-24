@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stock movement history</title>
+</head>
+<body>
+    <h1>Stock movement history</h1>
+    <p><a href="{% url 'inventory-list' %}">Back to inventory</a></p>
+    <table>
+        <thead>
+            <tr><th>Product</th><th>Type</th><th>Quantity</th><th>Note</th><th>Created</th></tr>
+        </thead>
+        <tbody>
+            {% for movement in movements %}
+            <tr>
+                <td>{{ movement.product }}</td>
+                <td>{{ movement.get_movement_type_display }}</td>
+                <td>{{ movement.quantity }}</td>
+                <td>{{ movement.note|default:movement.reference }}</td>
+                <td>{{ movement.created_at }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No stock movements yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

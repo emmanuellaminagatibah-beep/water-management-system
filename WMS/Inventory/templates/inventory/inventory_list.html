@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventory</title>
+</head>
+<body>
+    <h1>Inventory</h1>
+    <p><a href="{% url 'stock-movement-history' %}">View movement history</a></p>
+    <table>
+        <thead>
+            <tr><th>Product</th><th>On hand</th><th>Reorder level</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.product }}</td>
+                <td>{{ item.quantity_on_hand }}</td>
+                <td>{{ item.reorder_level }}</td>
+                <td>{% if item.is_low_stock %}Low stock{% else %}OK{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">No inventory records yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
