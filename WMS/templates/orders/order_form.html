@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ page_title }}</title>
+    <style>
+        body { max-width: 900px; margin: 2rem auto; padding: 0 1rem; color: #202a2d; font: 16px/1.5 "Segoe UI", sans-serif; }
+        a { color: #075e58; }
+        label { display: grid; gap: .25rem; margin: .65rem 0; }
+        input, select, button { min-height: 2.35rem; padding: .35rem .5rem; font: inherit; }
+        .order-fields { max-width: 34rem; }
+        .item-row { display: grid; grid-template-columns: minmax(12rem, 2fr) minmax(7rem, 1fr) minmax(7rem, 1fr); gap: .8rem; align-items: end; border-bottom: 1px solid #d6dfdd; padding: .5rem 0; }
+        .errors { color: #a21d24; }
+        .actions { display: flex; gap: .8rem; margin-top: 1.25rem; }
+        .add-item { margin: .8rem 0; }
+        @media (max-width: 600px) { .item-row { grid-template-columns: 1fr 1fr; } .item-row label:first-child { grid-column: 1 / -1; } }
+    </style>
+</head>
+<body>
+    <p><a href="{% url 'orders' %}">Orders</a>{% if order %} / {{ order.order_reference }}{% endif %}</p>
+    <h1>{{ page_title }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ order_form.non_field_errors }}
+        <div class="order-fields">
+            {% for field in order_form %}
+                <label for="{{ field.id_for_label }}">{{ field.label }} {{ field }}
+                    {% if field.errors %}<span class="errors">{{ field.errors }}</span>{% endif %}
+                </label>
+            {% endfor %}
+        </div>
+        {{ item_formset.management_form }}
+        {{ item_formset.non_form_errors }}
+        <h2>Order items</h2>
+        {% for item_form in item_formset %}
+            <div class="item-row">
+                {% for hidden in item_form.hidden_fields %}{{ hidden }}{% endfor %}
+                <label>Product {{ item_form.product }}{% if item_form.product.errors %}<span class="errors">{{ item_form.product.errors }}</span>{% endif %}</label>
+                <label>Quantity {{ item_form.quantity }}{% if item_form.quantity.errors %}<span class="errors">{{ item_form.quantity.errors }}</span>{% endif %}</label>
+                {% if item_formset.can_delete %}<label>Remove {{ item_form.DELETE }}</label>{% endif %}
+            </div>
+        {% endfor %}
+        <div id="new-items"></div>
+        <template id="item-template">
+            <div class="item-row">
+                {% for hidden in item_formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
+                <label>Product {{ item_formset.empty_form.product }}</label>
+                <label>Quantity {{ item_formset.empty_form.quantity }}</label>
+                <label>Remove {{ item_formset.empty_form.DELETE }}</label>
+            </div>
+        </template>
+        <button class="add-item" type="button" id="add-item">Add product</button>
+        <div class="actions">
+            <button type="submit">Save order</button>
+            <a href="{% if order %}{% url 'order_detail' order.pk %}{% else %}{% url 'orders' %}{% endif %}">Cancel</a>
+        </div>
+    </form>
+    <script>
+        const addItemButton = document.getElementById('add-item');
+        const totalForms = document.getElementById('id_items-TOTAL_FORMS');
+        const newItems = document.getElementById('new-items');
+        const itemTemplate = document.getElementById('item-template');
+
+        addItemButton.addEventListener('click', () => {
+            const index = Number(totalForms.value);
+            const row = document.createElement('div');
+            row.innerHTML = itemTemplate.innerHTML.replaceAll('__prefix__', index);
+            newItems.append(row.firstElementChild);
+            totalForms.value = index + 1;
+        });
+    </script>
+</body>
+</html>
