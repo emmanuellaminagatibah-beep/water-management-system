@@ -15,7 +15,7 @@ DECREASE_TYPES = {
 
 
 @transaction.atomic
-def adjust_stock(product, quantity, movement_type, user=None, note=''):
+def adjust_stock(product, quantity, movement_type, user=None, note='', reference=''):
 	if quantity <= 0:
 		raise ValidationError('Quantity must be positive.')
 
@@ -40,6 +40,6 @@ def adjust_stock(product, quantity, movement_type, user=None, note=''):
 		quantity=quantity,
 		created_by=user,
 		note=note,
-		reference=note,
+		reference=reference or note,
 	)
 	return inventory

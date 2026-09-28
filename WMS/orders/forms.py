@@ -18,7 +18,7 @@ class OrderCreateForm(forms.ModelForm):
 class OrderEditForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ['client', 'status']
+        fields = ['client']
 
     client = forms.ModelChoiceField(queryset=Client.objects.order_by('client_id'))
 

@@ -2,10 +2,13 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import transaction
 from django.db.models import Q
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from .forms import OrderCreateForm, OrderEditForm, OrderItemFormSet
 from .models import Order
+from .services import cancel_order, confirm_order
 
 
 staff_required = user_passes_test(lambda user: user.is_staff or user.is_superuser)
@@ -69,6 +72,9 @@ def order_create(request):
 @staff_required
 def order_edit(request, pk):
 	order = get_object_or_404(Order.objects.select_related('client'), pk=pk)
+	if order.status != 'pending':
+		messages.error(request, 'Only pending orders can be edited.')
+		return redirect('order_detail', pk=order.pk)
 	order_form = OrderEditForm(request.POST or None, instance=order)
 	item_formset = OrderItemFormSet(request.POST or None, instance=order)
 
@@ -97,3 +103,31 @@ def order_detail(request, pk):
 		pk=pk,
 	)
 	return render(request, 'orders/order_detail.html', {'order': order})
+
+
+@login_required
+@staff_required
+@require_POST
+def order_confirm(request, pk):
+	order = get_object_or_404(Order, pk=pk)
+	try:
+		confirm_order(order, user=request.user)
+	except ValidationError as error:
+		messages.error(request, error.messages[0])
+	else:
+		messages.success(request, f'Order {order.order_reference} confirmed successfully.')
+	return redirect('order_detail', pk=order.pk)
+
+
+@login_required
+@staff_required
+@require_POST
+def order_cancel(request, pk):
+	order = get_object_or_404(Order, pk=pk)
+	try:
+		cancel_order(order, user=request.user)
+	except ValidationError as error:
+		messages.error(request, error.messages[0])
+	else:
+		messages.success(request, f'Order {order.order_reference} cancelled successfully.')
+	return redirect('order_detail', pk=order.pk)

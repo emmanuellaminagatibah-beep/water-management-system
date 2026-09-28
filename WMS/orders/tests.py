@@ -8,8 +8,10 @@ from django.urls import reverse
 
 from clients.models import Client
 from products.models import Product
+from Inventory.models import Inventory, StockMovement
 
 from .models import Order, OrderItem
+from .services import cancel_order, confirm_order
 
 
 class OrderWorkflowTests(TestCase):
@@ -37,6 +39,8 @@ class OrderWorkflowTests(TestCase):
 	def create_order(self, quantities=(2, 1, 3)):
 		order = Order.objects.create(client=self.customer)
 		for product, quantity in zip(self.products, quantities):
+			if quantity <= 0:
+				continue
 			OrderItem.objects.create(
 				order=order,
 				product=product,
@@ -126,7 +130,6 @@ class OrderWorkflowTests(TestCase):
 		order = self.create_order((1, 1, 1))
 		response = self.client.post(reverse('order_edit', args=[order.pk]), {
 			'client': self.customer.pk,
-			'status': 'confirmed',
 			'items-TOTAL_FORMS': '3',
 			'items-INITIAL_FORMS': '3',
 			'items-MIN_NUM_FORMS': '1',
@@ -144,7 +147,7 @@ class OrderWorkflowTests(TestCase):
 
 		self.assertEqual(response.status_code, 302)
 		order.refresh_from_db()
-		self.assertEqual(order.status, 'confirmed')
+		self.assertEqual(order.status, 'pending')
 		self.assertEqual(order.total_amount, Decimal('150.00'))
 
 	def test_changing_product_uses_new_current_price(self):
@@ -179,3 +182,105 @@ class OrderWorkflowTests(TestCase):
 				quantity=0,
 				unit_price=self.products[0].unit_price,
 			)
+
+	def add_inventory(self, product, quantity, reserved=0):
+		return Inventory.objects.create(product=product, quantity=quantity, reserved_quantity=reserved)
+
+	def test_confirm_order_deducts_stock_and_records_reference(self):
+		order = self.create_order((20, 0, 0))
+		inventory = self.add_inventory(self.products[0], 100)
+
+		confirm_order(order, user=self.staff)
+
+		inventory.refresh_from_db()
+		order.refresh_from_db()
+		movement = StockMovement.objects.get()
+		self.assertEqual(order.status, 'confirmed')
+		self.assertEqual(inventory.quantity, 80)
+		self.assertEqual(inventory.available_quantity, 80)
+		self.assertEqual(movement.movement_type, StockMovement.MovementType.ISSUED)
+		self.assertEqual(movement.quantity, 20)
+		self.assertEqual(movement.reference, order.order_reference)
+
+	def test_insufficient_stock_leaves_order_inventory_and_movements_unchanged(self):
+		order = self.create_order((20, 0, 0))
+		inventory = self.add_inventory(self.products[0], 10)
+
+		with self.assertRaisesMessage(ValidationError, 'Insufficient stock for Water 1. Available: 10, Requested: 20.'):
+			confirm_order(order)
+
+		order.refresh_from_db()
+		inventory.refresh_from_db()
+		self.assertEqual(order.status, 'pending')
+		self.assertEqual(inventory.quantity, 10)
+		self.assertFalse(StockMovement.objects.exists())
+
+	def test_reserved_units_are_not_available_for_confirmation(self):
+		order = self.create_order((6, 0, 0))
+		self.add_inventory(self.products[0], 10, reserved=5)
+
+		with self.assertRaisesMessage(ValidationError, 'Available: 5, Requested: 6.'):
+			confirm_order(order)
+
+	def test_multiple_products_confirm_together(self):
+		order = self.create_order((20, 10, 0))
+		first = self.add_inventory(self.products[0], 100)
+		second = self.add_inventory(self.products[1], 50)
+
+		confirm_order(order)
+
+		first.refresh_from_db()
+		second.refresh_from_db()
+		self.assertEqual((first.quantity, second.quantity), (80, 40))
+		self.assertEqual(StockMovement.objects.count(), 2)
+
+	def test_insufficient_second_product_does_not_partially_update(self):
+		order = self.create_order((20, 10, 0))
+		first = self.add_inventory(self.products[0], 100)
+		second = self.add_inventory(self.products[1], 5)
+
+		with self.assertRaisesMessage(ValidationError, 'Insufficient stock for Water 2. Available: 5, Requested: 10.'):
+			confirm_order(order)
+
+		order.refresh_from_db()
+		first.refresh_from_db()
+		second.refresh_from_db()
+		self.assertEqual(order.status, 'pending')
+		self.assertEqual((first.quantity, second.quantity), (100, 5))
+		self.assertFalse(StockMovement.objects.exists())
+
+	def test_missing_inventory_fails_safely(self):
+		order = self.create_order((1, 0, 0))
+
+		with self.assertRaisesMessage(ValidationError, 'Inventory record not found for Water 1.'):
+			confirm_order(order)
+
+		order.refresh_from_db()
+		self.assertEqual(order.status, 'pending')
+		self.assertFalse(StockMovement.objects.exists())
+
+	def test_cancelled_confirmed_order_restores_stock_and_records_return(self):
+		order = self.create_order((20, 0, 0))
+		inventory = self.add_inventory(self.products[0], 100)
+		confirm_order(order, user=self.staff)
+
+		cancel_order(order, user=self.staff)
+
+		inventory.refresh_from_db()
+		order.refresh_from_db()
+		self.assertEqual(order.status, 'cancelled')
+		self.assertEqual(inventory.quantity, 100)
+		self.assertEqual(StockMovement.objects.count(), 2)
+		self.assertEqual(
+			StockMovement.objects.order_by('pk').last().movement_type,
+			StockMovement.MovementType.RETURNED,
+		)
+
+	def test_confirm_view_shows_insufficient_stock_message(self):
+		order = self.create_order((20, 0, 0))
+		self.add_inventory(self.products[0], 10)
+
+		response = self.client.post(reverse('order_confirm', args=[order.pk]), follow=True)
+
+		self.assertRedirects(response, reverse('order_detail', args=[order.pk]))
+		self.assertContains(response, 'Insufficient stock for Water 1. Available: 10, Requested: 20.')

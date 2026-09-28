@@ -7,6 +7,10 @@
     <style>
         body { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; color: #202a2d; font: 16px/1.5 "Segoe UI", sans-serif; }
         header, .actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+        .messages { padding: 0; list-style: none; }
+        .messages li { margin: .5rem 0; padding: .6rem; background: #edf4f1; }
+        .messages .error { background: #fbe9e8; color: #8b1e1b; }
+        form { display: inline; }
         a { color: #075e58; }
         dl { display: grid; grid-template-columns: 10rem 1fr; gap: .5rem 1rem; }
         dt { color: #52615f; }
@@ -18,9 +22,17 @@
     </style>
 </head>
 <body>
+    {% if messages %}<ul class="messages">{% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}</ul>{% endif %}
     <header>
         <div><p><a href="{% url 'orders' %}">Orders</a></p><h1>{{ order.order_reference }}</h1></div>
-        <a href="{% url 'order_edit' order.pk %}">Edit order</a>
+        <div class="actions">
+            {% if order.status == 'pending' %}
+            <a href="{% url 'order_edit' order.pk %}">Edit order</a>
+            <form method="post" action="{% url 'order_confirm' order.pk %}">{% csrf_token %}<button type="submit">Confirm order</button></form>
+            {% elif order.status == 'confirmed' %}
+            <form method="post" action="{% url 'order_cancel' order.pk %}">{% csrf_token %}<button type="submit">Cancel order</button></form>
+            {% endif %}
+        </div>
     </header>
     <dl>
         <dt>Client</dt><dd>{{ order.client }}</dd>
