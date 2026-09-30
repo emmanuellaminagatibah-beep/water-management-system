@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Deliveries</title>
+    <style>
+        body { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; color: #202a2d; font: 16px/1.5 "Segoe UI", sans-serif; }
+        header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+        a { color: #075e58; }
+        .button { display: inline-block; padding: .55rem .8rem; background: #075e58; color: white; text-decoration: none; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: .7rem .55rem; border-bottom: 1px solid #d6dfdd; text-align: left; }
+        th { color: #435351; font-size: .85rem; }
+        .messages { padding: .75rem 1rem; background: #e7f4ed; }
+        @media (max-width: 650px) { table { font-size: .88rem; } th, td { padding: .55rem .3rem; } }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Deliveries</h1>
+        {% if user.is_superuser or user.role == 'admin' or user.role == 'sales' %}
+        <a class="button" href="{% url 'delivery_create' %}">Schedule delivery</a>
+        {% endif %}
+    </header>
+    {% for message in messages %}<p class="messages">{{ message }}</p>{% endfor %}
+    <table>
+        <thead>
+            <tr><th>Order reference</th><th>Driver</th><th>Vehicle</th><th>Destination</th><th>Scheduled date</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+            {% for delivery in deliveries %}
+            <tr>
+                <td>{{ delivery.order.order_reference }}</td>
+                <td>{{ delivery.driver }}</td>
+                <td>{{ delivery.vehicle.registration_number }}</td>
+                <td>{{ delivery.destination }}</td>
+                <td>{{ delivery.scheduled_date|date:"Y-m-d H:i" }}</td>
+                <td>{{ delivery.get_status_display }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">No deliveries scheduled.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

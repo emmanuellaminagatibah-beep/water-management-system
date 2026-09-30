@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Schedule delivery</title>
+    <style>
+        body { max-width: 680px; margin: 2rem auto; padding: 0 1rem; color: #202a2d; font: 16px/1.5 "Segoe UI", sans-serif; }
+        a { color: #075e58; }
+        form { display: grid; gap: 1rem; }
+        label { display: grid; gap: .3rem; }
+        input, select, textarea, button { min-height: 2.4rem; padding: .45rem .55rem; font: inherit; }
+        textarea { min-height: 5rem; }
+        button { justify-self: start; padding: .55rem .9rem; border: 0; background: #075e58; color: white; border-radius: 4px; cursor: pointer; }
+        .errorlist { margin: 0; color: #a52a2a; }
+        .non-field-errors { padding: .7rem; background: #fcebea; }
+    </style>
+</head>
+<body>
+    <p><a href="{% url 'delivery_list' %}">Deliveries</a></p>
+    <h1>Schedule delivery</h1>
+    <form method="post">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="non-field-errors">{{ form.non_field_errors }}</div>{% endif %}
+        {% for field in form %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}{{ field }}{{ field.errors }}</label>
+        {% endfor %}
+        <button type="submit">Schedule delivery</button>
+    </form>
+</body>
+</html>
