@@ -19,7 +19,7 @@ class DriverAdmin(admin.ModelAdmin):
 
 @admin.register(Delivery)
 class DeliveryAdmin(admin.ModelAdmin):
-	list_display = ('order', 'driver', 'vehicle', 'destination', 'status', 'scheduled_date')
+	list_display = ('order', 'driver', 'vehicle', 'destination', 'status', 'scheduled_date', 'dispatched_at', 'completed_at')
 	search_fields = ('order__order_reference', 'driver__name', 'driver__license_number', 'vehicle__registration_number', 'destination')
 	list_filter = ('status', 'scheduled_date')
 	list_select_related = ('order', 'driver', 'vehicle')
