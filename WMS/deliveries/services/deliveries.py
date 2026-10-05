@@ -4,6 +4,7 @@ from django.utils import timezone
 
 from accounts.models import User
 from deliveries.models import Delivery
+from orders.models import Order
 
 VALID_TRANSITIONS = {
 	Delivery.Status.SCHEDULED: {
@@ -40,6 +41,7 @@ def schedule_delivery(order, driver, vehicle, destination, scheduled_date, statu
 
 @transaction.atomic
 def change_delivery_status(*, delivery, new_status, acting_user, status_note=''):
+	delivery = Delivery.objects.select_for_update().select_related('order', 'driver__user', 'vehicle').get(pk=delivery.pk)
 	current_status = delivery.status
 	status_note = (status_note or '').strip()
 	if new_status not in Delivery.Status.values:
@@ -91,4 +93,18 @@ def change_delivery_status(*, delivery, new_status, acting_user, status_note='')
 	if status_note:
 		delivery.status_note = status_note
 	delivery.save()
+	if new_status == Delivery.Status.PARTIALLY_DELIVERED:
+		Order.objects.filter(pk=delivery.order_id).update(status='partially_delivered')
+	elif new_status == Delivery.Status.DELIVERED:
+		open_deliveries = Delivery.objects.filter(order_id=delivery.order_id).exclude(
+			status__in=[Delivery.Status.DELIVERED, Delivery.Status.PARTIALLY_DELIVERED, Delivery.Status.CANCELLED],
+		).exists()
+		if not open_deliveries:
+			has_partial_delivery = Delivery.objects.filter(
+				order_id=delivery.order_id,
+				status=Delivery.Status.PARTIALLY_DELIVERED,
+			).exists()
+			Order.objects.filter(pk=delivery.order_id).update(
+				status='partially_delivered' if has_partial_delivery else 'delivered',
+			)
 	return delivery

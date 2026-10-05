@@ -2,6 +2,7 @@ env/
 __pycache__/
 *.py[cod]
 WMS/db.sqlite3
+WMS/staticfiles/
 .env
 .env.*
 !.env.example

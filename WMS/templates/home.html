@@ -1,0 +1,141 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#123b3d">
+    <meta name="description" content="AquaFlow coordinates dependable water service, delivery, and customer care.">
+    <title>AquaFlow | Water, managed with care</title>
+    <style>
+        :root { --forest: #123b3d; --deep: #0a292b; --mint: #b9d6c7; --paper: #f2f5ef; --coral: #e17b62; --ink: #173a3a; --muted: #5e706d; }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { margin: 0; color: var(--ink); font: 16px/1.55 "Trebuchet MS", "Segoe UI", sans-serif; }
+        a { color: inherit; }
+        .hero { position: relative; isolation: isolate; display: flex; min-height: 92svh; flex-direction: column; color: #fff; background-color: var(--forest); background-image: url("https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=2400&q=88"); background-position: center 58%; background-size: cover; }
+        .hero::before { position: absolute; z-index: -1; inset: 0; background: rgba(7, 38, 39, .46); content: ""; }
+        .topbar { display: flex; width: min(1380px, 100%); align-items: center; justify-content: space-between; gap: 2rem; margin: 0 auto; padding: 1.2rem clamp(1.25rem, 5vw, 5rem); border-bottom: 1px solid rgba(255,255,255,.28); }
+        .wordmark { color: #fff; font: 700 1.25rem Georgia, serif; text-decoration: none; }
+        .nav { display: flex; align-items: center; gap: clamp(1rem, 3vw, 2.5rem); }
+        .nav a { color: #fff; font-size: .9rem; text-decoration: none; }
+        .nav a:not(.sign-in):hover { color: var(--mint); }
+        .nav .sign-in { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; padding: .65rem 1rem; color: var(--deep); background: #f5f3e9; font-weight: 700; }
+        .nav .sign-in:hover { background: var(--mint); }
+        .hero-content { width: min(1380px, 100%); margin: auto; padding: 5rem clamp(1.25rem, 9vw, 9rem) 5.5rem; animation: arrive .7s ease-out both; }
+        .eyebrow { margin: 0 0 1rem; color: #e3b99c; font-size: .76rem; font-weight: 700; text-transform: uppercase; }
+        h1, h2 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; letter-spacing: 0; }
+        h1 { max-width: 760px; margin: 0; font-size: 4.4rem; line-height: 1.02; }
+        .hero-copy { max-width: 540px; margin: 1.3rem 0 0; color: rgba(255,255,255,.85); font-size: 1.08rem; }
+        .hero-link { display: inline-block; margin-top: 1.8rem; padding-bottom: .3rem; border-bottom: 1px solid rgba(255,255,255,.75); color: white; text-decoration: none; }
+        .hero-link span { padding-left: .4rem; color: #f2b08f; }
+        .hero-caption { position: absolute; right: clamp(1.25rem, 5vw, 5rem); bottom: 1.35rem; margin: 0; color: rgba(255,255,255,.75); font-size: .75rem; }
+        .about { padding: 4.5rem clamp(1.25rem, 9vw, 9rem) 5rem; background: var(--paper); }
+        .section-inner { width: min(1180px, 100%); margin: 0 auto; }
+        .section-kicker { margin: 0 0 .55rem; color: #b9503e; font-size: .74rem; font-weight: 700; text-transform: uppercase; }
+        .about h2, .contact h2 { max-width: 640px; margin: 0; font-size: 2.65rem; line-height: 1.1; }
+        .about-intro { max-width: 650px; margin: 1rem 0 2.5rem; color: var(--muted); }
+        .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
+        .step { padding-top: 1rem; border-top: 1px solid #b8c9c0; }
+        .step-number { color: #b9503e; font-size: .75rem; font-weight: 700; }
+        .step h3 { margin: .45rem 0 .35rem; color: var(--forest); font: 700 1rem "Trebuchet MS", "Segoe UI", sans-serif; }
+        .step p { max-width: 320px; margin: 0; color: var(--muted); font-size: .92rem; }
+        .contact { padding: 4rem clamp(1.25rem, 9vw, 9rem); color: #f4f3e9; background: var(--forest); }
+        .contact-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(240px, .8fr); gap: 3rem; align-items: start; }
+        .contact .section-kicker { color: #f0ad8e; }
+        .contact-copy { max-width: 560px; color: rgba(244,243,233,.76); }
+        .contact-details { display: grid; gap: 1rem; padding-top: .2rem; }
+        .contact-details p { margin: 0; }
+        .contact-details strong { display: block; margin-bottom: .15rem; color: #c4d8ca; font-size: .74rem; text-transform: uppercase; }
+        .contact-details a { color: #fff; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+        .demo-note { margin: 1.4rem 0 0; color: rgba(244,243,233,.55); font-size: .76rem; }
+        footer { display: flex; justify-content: space-between; gap: 1rem; padding: 1.15rem clamp(1.25rem, 5vw, 5rem); color: #c6d6ce; background: var(--deep); font-size: .8rem; }
+        footer p { margin: 0; }
+        footer a { color: #fff; }
+        @keyframes arrive { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 720px) {
+            .hero { min-height: 82svh; background-position: 59% center; }
+            .topbar { gap: 1rem; padding: 1rem 1.1rem; }
+            .nav { gap: .9rem; }
+            .nav a { font-size: .82rem; }
+            .nav .sign-in { min-height: 40px; padding: .5rem .7rem; }
+            .hero-content { padding: 4.2rem 1.4rem 5rem; }
+            h1 { max-width: 540px; font-size: 3rem; }
+            .hero-copy { max-width: 440px; font-size: 1rem; }
+            .hero-caption { left: 1.4rem; right: auto; font-size: .7rem; }
+            .about, .contact { padding: 3.2rem 1.4rem; }
+            .about h2, .contact h2 { font-size: 2.1rem; }
+            .steps { grid-template-columns: 1fr; gap: 1.5rem; }
+            .step p { max-width: 520px; }
+            .contact-grid { grid-template-columns: 1fr; gap: 1.7rem; }
+            footer { flex-wrap: wrap; padding: 1rem 1.4rem; }
+        }
+        @media (max-width: 420px) {
+            .wordmark { font-size: 1.05rem; }
+            .nav { gap: .65rem; }
+            .nav a { font-size: .76rem; }
+            .nav .sign-in { padding: .45rem .55rem; }
+            h1 { font-size: 2.45rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .hero-content { animation: none; }
+        }
+    </style>
+    <link rel="stylesheet" href="/static/dashboards/css/aquaflow-visuals.css">
+    <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
+</head>
+<body>
+    <main>
+        <section class="hero" aria-labelledby="hero-title">
+            <header class="topbar">
+                <a class="wordmark" href="{% url 'home' %}">AquaFlow</a>
+                <nav class="nav" aria-label="Main navigation">
+                    <a href="#about">About</a>
+                    <a href="#contact">Contact</a>
+                    {% if request.user.is_authenticated %}
+                    <a class="sign-in" href="{% url 'dashboard' %}">Dashboard</a>
+                    {% else %}
+                    <a class="sign-in" href="{% url 'login' %}">Sign in</a>
+                    {% endif %}
+                </nav>
+            </header>
+            <div class="hero-content">
+                <p class="eyebrow">Water for everyday life</p>
+                <h1 id="hero-title">Reliable water, from source to doorstep.</h1>
+                <p class="hero-copy">AquaFlow brings orders, delivery coordination, and customer care together in one dependable service.</p>
+                <a class="hero-link" href="#about">Get to know us <span aria-hidden="true">&#8594;</span></a>
+            </div>
+            <p class="hero-caption">A more connected way to manage water service</p>
+        </section>
+        <section class="about" id="about" aria-labelledby="about-title">
+            <div class="section-inner">
+                <p class="section-kicker">About AquaFlow</p>
+                <h2 id="about-title">Good service starts with a clear view of every step.</h2>
+                <p class="about-intro">We help teams coordinate the work behind dependable water service, from the first customer request to delivery and follow-up.</p>
+                <div class="steps">
+                    <article class="step"><span class="step-number">01 / PLAN</span><h3>Understand the need</h3><p>Keep customer details and requests organized so the right service can be prepared.</p></article>
+                    <article class="step"><span class="step-number">02 / DELIVER</span><h3>Coordinate the work</h3><p>Connect orders, stock, vehicles, and delivery teams in one operating flow.</p></article>
+                    <article class="step"><span class="step-number">03 / SUPPORT</span><h3>Stay accountable</h3><p>Follow up on deliveries, payments, and feedback with a clear record of what happened.</p></article>
+                </div>
+            </div>
+        </section>
+        <section class="contact" id="contact" aria-labelledby="contact-title">
+            <div class="section-inner contact-grid">
+                <div>
+                    <p class="section-kicker">Contact</p>
+                    <h2 id="contact-title">Let’s make water service work better.</h2>
+                    <p class="contact-copy">AquaFlow brings order management, delivery coordination, and customer support into one workspace. Sign in to manage your service, or create an account to get started.</p>
+                </div>
+                <div class="contact-details">
+                    {% if contact_email %}<p><strong>Email</strong><a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>{% endif %}
+                    {% if contact_phone %}<p><strong>Phone</strong><a href="tel:{{ contact_phone }}">{{ contact_phone }}</a></p>{% endif %}
+                    {% if contact_location %}<p><strong>Office</strong>{{ contact_location }}</p>{% endif %}
+                    {% if not contact_email and not contact_phone and not contact_location %}<p><strong>Client support</strong><a href="{% url 'login' %}">Sign in to contact your service team</a></p>{% endif %}
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer><p>&copy; {% now "Y" %} AquaFlow</p><p><a href="{% url 'login' %}">Staff sign in</a></p></footer>
+</body>
+</html>

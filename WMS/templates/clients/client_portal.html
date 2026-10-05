@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#123f40">
+    <title>My account | AquaFlow</title>
+    <style>
+        :root { --ink: #173b3b; --muted: #647875; --line: #d8e3de; --paper: #f0f5f1; --white: #fff; --deep: #123f40; --teal: #087568; --coral: #c65e49; }
+        * { box-sizing: border-box; }
+        body { min-height: 100vh; margin: 0; color: var(--ink); font: 16px/1.5 "Trebuchet MS", "Segoe UI", sans-serif; background-color: var(--paper); background-image: repeating-linear-gradient(145deg, transparent 0 54px, rgba(18, 63, 64, .035) 54px 55px, transparent 55px 98px); }
+        a { color: inherit; }
+        .topbar { display: flex; min-height: 64px; align-items: center; justify-content: space-between; gap: 1rem; padding: .8rem clamp(1rem, 5vw, 4rem); color: #f4fbf8; background: var(--deep); }
+        .brand { font: 700 1.08rem Georgia, serif; text-decoration: none; }
+        .top-links { display: flex; align-items: center; gap: 1.2rem; color: rgba(255,255,255,.84); font-size: .88rem; }
+        .top-links a:hover { color: #fff; }
+        main { width: min(1180px, 100%); margin: 0 auto; padding: 2rem clamp(1rem, 4vw, 3rem) 3rem; }
+        .breadcrumbs { margin: 0 0 1rem; color: var(--muted); font-size: .84rem; }
+        .breadcrumbs a { color: var(--teal); text-decoration: none; }
+        .account-layout { display: grid; grid-template-columns: 270px minmax(0, 1fr); align-items: start; gap: 1rem; }
+        .profile-rail { min-height: 100%; padding: 1.5rem; color: #f4fbf8; background: var(--deep); }
+        .avatar { display: grid; width: 56px; height: 56px; place-items: center; color: var(--deep); background: #b9d6c7; border-radius: 50%; font: 700 1.35rem Georgia, serif; }
+        .profile-rail h2 { margin: 1rem 0 .2rem; font: 700 1.1rem Georgia, serif; overflow-wrap: anywhere; }
+        .username { margin: 0; color: #b9d6c7; font-size: .84rem; overflow-wrap: anywhere; }
+        .account-tag { display: inline-block; margin-top: 1rem; padding: .28rem .55rem; color: #f4fbf8; border: 1px solid rgba(255,255,255,.28); font-size: .72rem; }
+        .rail-rule { height: 1px; margin: 1.5rem 0; border: 0; background: rgba(255,255,255,.18); }
+        .rail-label { margin: 0 0 .35rem; color: #b9d6c7; font-size: .7rem; font-weight: 700; text-transform: uppercase; }
+        .rail-value { margin: 0; font-size: .9rem; overflow-wrap: anywhere; }
+        .rail-nav { display: grid; gap: .15rem; margin-top: 1.4rem; }
+        .rail-nav a { padding: .58rem .65rem; color: rgba(255,255,255,.83); font-size: .88rem; text-decoration: none; }
+        .rail-nav a:hover, .rail-nav a[aria-current="page"] { color: #fff; background: rgba(255,255,255,.1); }
+        .profile-main { min-width: 0; padding: clamp(1.2rem, 3vw, 2rem); background: var(--white); box-shadow: 0 8px 28px rgba(18,63,64,.07); }
+        .page-kicker { margin: 0 0 .4rem; color: var(--coral); font-size: .72rem; font-weight: 700; text-transform: uppercase; }
+        h1 { margin: 0; color: var(--deep); font: 400 2.3rem/1.15 Georgia, serif; }
+        .intro { max-width: 620px; margin: .65rem 0 1.5rem; color: var(--muted); }
+        .messages { margin: 0 0 1rem; padding: .75rem 1rem; color: #175346; background: #e1f1e9; border-left: 3px solid var(--teal); }
+        .form-section { padding-top: 1.2rem; border-top: 1px solid var(--line); }
+        .section-heading { margin: 0 0 1rem; font-size: .96rem; }
+        .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem 1rem; }
+        .field { min-width: 0; }
+        .field-wide { grid-column: 1 / -1; }
+        label { display: block; margin-bottom: .35rem; color: var(--ink); font-size: .8rem; font-weight: 700; }
+        input, select, textarea { width: 100%; min-height: 46px; padding: .65rem .75rem; color: var(--ink); background: #fbfdfc; border: 1px solid #c9d8d1; border-radius: 2px; font: inherit; }
+        textarea { min-height: 92px; resize: vertical; }
+        input:focus, select:focus, textarea:focus { border-color: var(--teal); outline: 0; box-shadow: 0 0 0 3px rgba(8,117,104,.13); }
+        .errorlist { margin: .35rem 0 0; padding: 0; color: #a12d27; font-size: .8rem; list-style: none; }
+        .form-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.4rem; padding-top: 1.1rem; border-top: 1px solid var(--line); }
+        .form-note { margin: 0; color: var(--muted); font-size: .78rem; }
+        button { min-height: 44px; padding: .65rem 1rem; color: #fff; background: var(--teal); border: 0; border-radius: 2px; cursor: pointer; font: inherit; font-size: .88rem; font-weight: 700; }
+        button:hover { background: var(--deep); }
+        button:focus-visible, a:focus-visible { outline: 3px solid #55b9ad; outline-offset: 3px; }
+        @media (max-width: 760px) { main { padding-top: 1.3rem; } .account-layout { grid-template-columns: 1fr; } .profile-rail { display: grid; grid-template-columns: 56px minmax(0, 1fr); align-items: center; column-gap: .85rem; padding: 1rem; } .avatar { grid-row: span 2; } .profile-rail h2 { margin: 0; } .username { align-self: start; } .account-tag, .rail-rule, .rail-label, .rail-value, .rail-nav { display: none; } }
+        @media (max-width: 520px) { .topbar { align-items: flex-start; flex-direction: column; } .top-links { width: 100%; justify-content: space-between; } .fields { grid-template-columns: 1fr; } .field-wide { grid-column: auto; } .form-footer { align-items: stretch; flex-direction: column; } button { width: 100%; } h1 { font-size: 2rem; } }
+    </style>
+    <link rel="stylesheet" href="/static/dashboards/css/aquaflow-visuals.css">
+    <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/">AquaFlow</a>
+        <nav class="top-links" aria-label="Account navigation">
+            <a href="{% url 'dashboard' %}">Workspace</a>
+            <a href="{% url 'logout' %}">Sign out</a>
+        </nav>
+    </header>
+    <main>
+        <p class="breadcrumbs"><a href="{% url 'dashboard' %}">Workspace</a> / My account</p>
+        <div class="account-layout">
+            <aside class="profile-rail" aria-label="Customer account summary">
+                <div class="avatar" aria-hidden="true">{{ request.user.username|slice:":1"|upper }}</div>
+                <div>
+                    <h2>{{ request.user.get_full_name|default:request.user.username }}</h2>
+                    <p class="username">@{{ request.user.username }}</p>
+                </div>
+                <span class="account-tag">Customer account</span>
+                <hr class="rail-rule">
+                <p class="rail-label">Customer number</p>
+                <p class="rail-value">{% if client %}{{ client.client_id }}{% else %}Assigned after setup{% endif %}</p>
+                <nav class="rail-nav" aria-label="Customer shortcuts">
+                    <a href="{% url 'dashboard' %}">Workspace</a>
+                    <a href="{% url 'my_orders' %}">My orders</a>
+                    <a href="{% url 'complaint_list' %}">Support requests</a>
+                    <a href="{% url 'client_portal' %}" aria-current="page">Profile &amp; contact</a>
+                </nav>
+            </aside>
+            <section class="profile-main" aria-labelledby="page-title">
+                <p class="page-kicker">Customer profile</p>
+                <h1 id="page-title">My account</h1>
+                <p class="intro">Keep your contact and delivery details current so our team can serve you smoothly.</p>
+                {% for message in messages %}<p class="messages" role="status">{{ message }}</p>{% endfor %}
+                <form method="post">
+                    {% csrf_token %}
+                    <section class="form-section" aria-labelledby="business-heading">
+                        <h2 class="section-heading" id="business-heading">Account details</h2>
+                        <div class="fields">
+                            <div class="field field-wide">{{ form.business_name.label_tag }}{{ form.business_name }}{{ form.business_name.errors }}</div>
+                            <div class="field">{{ form.phone.label_tag }}{{ form.phone }}{{ form.phone.errors }}</div>
+                            <div class="field">{{ form.email.label_tag }}{{ form.email }}{{ form.email.errors }}</div>
+                            <div class="field field-wide">{{ form.address.label_tag }}{{ form.address }}{{ form.address.errors }}</div>
+                            <div class="field">{{ form.category.label_tag }}{{ form.category }}{{ form.category.errors }}</div>
+                        </div>
+                    </section>
+                    <div class="form-footer">
+                        <p class="form-note">Your details are used for account and delivery support.</p>
+                        <button type="submit">Save account details</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

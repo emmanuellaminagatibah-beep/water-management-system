@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Administrator dashboard | AquaFlow</title>
+    <style>
+        :root { --ink: #173b3b; --muted: #627773; --line: #d5e2de; --paper: #f2f7f4; --deep: #123f40; --teal: #087568; --white: #fff; --coral: #c65e49; }
+        * { box-sizing: border-box; }
+        body { margin: 0; color: var(--ink); background: var(--paper); font: 16px/1.5 "Trebuchet MS", sans-serif; }
+        header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem max(1rem, calc((100% - 1180px) / 2)); color: var(--white); background: var(--deep); }
+        header a { color: white; }
+        main { width: min(1180px, 100%); margin: 0 auto; padding: 2rem 1rem 3rem; }
+        h1, h2 { color: var(--deep); font-family: Georgia, serif; }
+        h1 { margin: 0; font-size: 2rem; }
+        h2 { margin: 0; font-size: 1.2rem; }
+        .intro { display: flex; align-items: end; justify-content: space-between; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+        .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: .65rem; padding: 1rem 0; }
+        .metric { min-width: 0; padding: .85rem; border: 1px solid var(--line); background: var(--white); }
+        .metric span { display: block; color: var(--muted); font-size: .82rem; }
+        .metric strong { display: block; color: var(--deep); font-size: 1.55rem; overflow-wrap: anywhere; }
+        .reports { display: flex; flex-wrap: wrap; gap: .5rem; padding: .6rem 0 1rem; }
+        .reports a { padding: .45rem .7rem; color: white; background: var(--teal); text-decoration: none; }
+        .section { padding: 1rem 0; border-top: 1px solid var(--line); }
+        .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: .7rem; }
+        .table-wrap { max-width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; background: var(--white); }
+            .table-wrap table { min-width: 620px; }
+        th, td { padding: .65rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+        th { color: var(--muted); font-size: .82rem; }
+        @media (max-width: 560px) { header, .intro { align-items: flex-start; flex-direction: column; } main { padding-top: 1.2rem; } h1 { font-size: 1.7rem; } }
+    </style>
+    <link rel="stylesheet" href="/static/dashboards/css/aquaflow-visuals.css">
+    <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
+</head>
+<body>
+    <header><a href="{% url 'dashboard' %}">AquaFlow</a><span>{{ request.user.get_full_name|default:request.user.username }} · <a href="{% url 'logout' %}">Sign out</a></span></header>
+    <main>
+        <section class="intro"><div><p>Administrator workspace</p><h1>Operations at a glance</h1></div><nav aria-label="Operational areas"><a href="{% url 'orders' %}">Orders</a> · <a href="{% url 'inventory-list' %}">Inventory</a> · <a href="{% url 'delivery_list' %}">Deliveries</a> · <a href="{% url 'client_list' %}">Clients</a> · <a href="{% url 'logout' %}">Sign out</a></nav></section>
+        <section class="metrics" aria-label="Current operating totals">
+            <div class="metric"><span>Total clients</span><strong>{{ total_clients }}</strong></div>
+            <div class="metric"><span>Pending orders</span><strong>{{ pending_orders }}</strong></div>
+            <div class="metric"><span>Deliveries awaiting completion</span><strong>{{ deliveries_awaiting }}</strong></div>
+            <div class="metric"><span>Products with available stock</span><strong>{{ available_products }}</strong></div>
+            <div class="metric"><span>Low-stock products</span><strong>{{ low_stock_products }}</strong></div>
+            <div class="metric"><span>Outstanding invoices</span><strong>{{ outstanding_total }}</strong></div>
+            <div class="metric"><span>Open complaints</span><strong>{{ open_complaints }}</strong></div>
+        </section>
+        <nav class="reports" aria-label="Reports">
+            <a href="{% url 'report_list' 'sales' %}">Sales</a>
+            <a href="{% url 'report_list' 'inventory' %}">Inventory</a>
+            <a href="{% url 'report_list' 'orders' %}">Orders</a>
+            <a href="{% url 'report_list' 'deliveries' %}">Deliveries</a>
+            <a href="{% url 'report_list' 'payments' %}">Payments</a>
+        </nav>
+        <section class="section">
+            <div class="section-heading"><h2>Recent payments</h2><a href="{% url 'report_list' 'payments' %}">Payment report</a></div>
+            <div class="table-wrap"><table>
+                <thead><tr><th>Date</th><th>Invoice</th><th>Client</th><th>Method</th><th>Amount</th><th>Received by</th></tr></thead>
+                <tbody>{% for payment in recent_payments %}<tr><td>{{ payment.payment_date }}</td><td>{{ payment.invoice.invoice_number }}</td><td>{{ payment.invoice.client }}</td><td>{{ payment.get_method_display }}</td><td>{{ payment.amount }}</td><td>{{ payment.received_by|default:"-" }}</td></tr>{% empty %}<tr><td colspan="6">No payments recorded.</td></tr>{% endfor %}</tbody>
+            </table></div>
+        </section>
+    </main>
+</body>
+</html>

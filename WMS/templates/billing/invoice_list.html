@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Invoices | Water Management</title>
+    <style>
+        body { max-width: 1180px; margin: 2rem auto; padding: 0 1rem; color: #173b3b; font: 16px/1.5 "Trebuchet MS", "Segoe UI", sans-serif; background: #f2f7f4; }
+        header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+        h1 { color: #123f40; font: 700 2rem Georgia, serif; }
+        a { color: #087568; }
+        .button, button { display: inline-block; padding: .55rem .75rem; border: 0; color: white; background: #087568; text-decoration: none; font: inherit; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { padding: .65rem .5rem; border-bottom: 1px solid #d5e2de; text-align: left; vertical-align: top; }
+        th { color: #57706d; font-size: .82rem; }
+        form { display: grid; grid-template-columns: minmax(70px, 1fr) minmax(90px, 1fr); gap: .35rem; min-width: 190px; }
+        input, select { min-width: 0; padding: .35rem; border: 1px solid #a9beb8; font: inherit; }
+        form input[name="reference"], form button { grid-column: 1 / -1; }
+        .messages { padding: .65rem; background: #e1f1e9; }
+        @media (max-width: 760px) { table { display: block; overflow-x: auto; } }
+    </style>
+    <link rel="stylesheet" href="/static/dashboards/css/aquaflow-visuals.css">
+    <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
+</head>
+<body>
+    <p><a href="{% url 'dashboard' %}">Dashboard</a></p>
+    <header><h1>Invoices and payments</h1>{% if request.user.role == 'admin' or request.user.role == 'accounts' %}<nav><a class="button" href="{% url 'invoice_create' %}">Issue invoice</a> <a href="{% url 'payment_list' %}">Payments</a></nav>{% endif %}</header>
+    {% for message in messages %}<p class="messages">{{ message }}</p>{% endfor %}
+    <table>
+        <thead><tr><th>Invoice</th><th>Order</th><th>Customer</th><th>Total</th><th>Outstanding</th><th>Status</th><th>Due</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for invoice in invoices %}
+            <tr>
+                <td><a href="{% url 'invoice_detail' invoice.id %}">{{ invoice.invoice_number }}</a></td><td>{{ invoice.order.order_reference }}</td><td>{{ invoice.client }}</td>
+                <td>{{ invoice.total_amount }}</td><td>{{ invoice.outstanding_balance }}</td><td>{{ invoice.get_payment_status_display }}</td><td>{{ invoice.due_date|default:"-" }}</td>
+                <td><a href="{% url 'invoice_print' invoice.id %}">Print</a> · <a href="{% url 'payment_history' invoice.id %}">History</a>
+                    {% if request.user.role == 'admin' or request.user.role == 'accounts' %}{% if invoice.outstanding_balance > 0 %}<br><a href="{% url 'payment_create' invoice.id %}">Record payment</a>{% endif %}{% endif %}</td>
+            </tr>
+            {% empty %}<tr><td colspan="8">No invoices have been issued.</td></tr>{% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

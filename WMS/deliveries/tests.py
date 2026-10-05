@@ -49,7 +49,7 @@ class DeliverySchedulingTests(TestCase):
 	def test_active_driver_and_vehicle_schedule_confirmed_order(self):
 		delivery = self.schedule()
 
-		self.assertEqual(delivery.status, 'scheduled')
+		self.assertEqual(delivery.status, Delivery.Status.SCHEDULED)
 		self.assertEqual(Delivery.objects.get(pk=delivery.pk).order, self.order)
 
 	def test_inactive_driver_cannot_be_assigned(self):
@@ -112,7 +112,7 @@ class DeliverySchedulingTests(TestCase):
 		)
 		own_delivery.refresh_from_db()
 		self.assertEqual(update_response.status_code, 302)
-		self.assertEqual(own_delivery.status, 'in_transit')
+		self.assertEqual(own_delivery.status, Delivery.Status.DISPATCHED)
 
 	def test_driver_cannot_update_another_drivers_delivery(self):
 		other_user = get_user_model().objects.create_user(username='unassigned-driver', role='driver')
@@ -180,6 +180,36 @@ class DeliveryDay8WorkflowTests(TestCase):
 		delivery.refresh_from_db()
 		self.assertEqual(delivery.status, 'DELIVERED')
 		self.assertIsNotNone(delivery.completed_at)
+		self.order.refresh_from_db()
+		self.assertEqual(self.order.status, 'delivered')
+
+	def test_direct_status_endpoint_uses_same_validation_as_service(self):
+		delivery = schedule_delivery(
+			order=self.order,
+			driver=self.driver,
+			vehicle=self.vehicle,
+			destination='Kumasi Central',
+			scheduled_date=timezone.now() + timedelta(days=1),
+		)
+		self.client.force_login(self.sales_user)
+		response = self.client.post(
+			reverse('delivery_update_status', args=[delivery.pk]),
+			{'status': 'DISPATCHED', 'status_note': 'Road closed'},
+		)
+		self.assertEqual(response.status_code, 302)
+		delivery.refresh_from_db()
+		self.assertEqual(delivery.status, Delivery.Status.DISPATCHED)
+		self.assertEqual(delivery.status_note, 'Road closed')
+
+		self.client.force_login(self.driver_user)
+		response = self.client.post(
+			reverse('delivery_update_status', args=[delivery.pk]),
+			{'status': 'PARTIALLY_DELIVERED', 'status_note': 'Half delivered'},
+		)
+		self.assertEqual(response.status_code, 302)
+		delivery.refresh_from_db()
+		self.assertEqual(delivery.status, Delivery.Status.PARTIALLY_DELIVERED)
+		self.assertEqual(delivery.status_note, 'Half delivered')
 
 	def test_client_only_sees_own_delivery_records(self):
 		self.client.force_login(self.client_user)

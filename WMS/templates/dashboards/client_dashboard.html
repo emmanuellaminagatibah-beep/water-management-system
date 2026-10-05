@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My service | AquaFlow</title>
+    <style>
+        :root { --ink: #173b3b; --muted: #627773; --line: #d5e2de; --paper: #f2f7f4; --deep: #123f40; --teal: #087568; --white: #fff; }
+        * { box-sizing: border-box; }
+        body { margin: 0; color: var(--ink); background: var(--paper); font: 16px/1.5 "Trebuchet MS", sans-serif; }
+        header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem max(1rem, calc((100% - 1180px) / 2)); color: var(--white); background: var(--deep); }
+        header a { color: white; }
+        main { width: min(1180px, 100%); margin: 0 auto; padding: 2rem 1rem 3rem; }
+        h1, h2 { color: var(--deep); font-family: Georgia, serif; }
+        h1 { margin: 0; font-size: 2rem; }
+        h2 { margin: 0; font-size: 1.2rem; }
+        .summary { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 1rem; padding-bottom: 1.2rem; border-bottom: 1px solid var(--line); }
+        .balance { color: var(--deep); font-size: 1.4rem; font-weight: 700; }
+        .section { padding: 1.2rem 0; border-bottom: 1px solid var(--line); }
+        .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: .7rem; }
+        .section-heading a { color: var(--teal); }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; background: var(--white); }
+        th, td { padding: .65rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+        th { color: var(--muted); font-size: .82rem; }
+        .empty { color: var(--muted); }
+        @media (max-width: 560px) { header { align-items: flex-start; flex-direction: column; } main { padding-top: 1.2rem; } h1 { font-size: 1.7rem; } }
+    </style>
+    <link rel="stylesheet" href="/static/dashboards/css/aquaflow-visuals.css">
+    <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
+</head>
+<body>
+    <header><a href="{% url 'home' %}">AquaFlow</a><nav><a href="{% url 'client_portal' %}">Account</a> · <a href="{% url 'logout' %}">Sign out</a></nav></header>
+    <main>
+        <section class="summary">
+            <div><p>Customer portal{% if client %} · {{ client.client_id }}{% endif %}</p><h1>My service</h1></div>
+            <p class="balance">Outstanding invoices: {{ outstanding_balance }}</p>
+        </section>
+        <section class="section">
+            <div class="section-heading"><h2>Products</h2><a href="{% url 'product_catalog' %}">Browse products</a></div>
+            <div class="table-wrap"><table><thead><tr><th>Product</th><th>SKU</th><th>Package</th></tr></thead><tbody>{% for product in products %}<tr><td>{{ product.name }}</td><td>{{ product.sku }}</td><td>{{ product.get_package_size_display }}</td></tr>{% empty %}<tr><td class="empty" colspan="3">No purchased products yet.</td></tr>{% endfor %}</tbody></table></div>
+        </section>
+        <section class="section">
+            <div class="section-heading"><h2>Orders</h2><a href="{% url 'my_orders' %}">All orders</a></div>
+            <div class="table-wrap"><table><thead><tr><th>Reference</th><th>Date</th><th>Status</th><th>Total</th></tr></thead><tbody>{% for order in orders %}<tr><td>{{ order.order_reference }}</td><td>{{ order.created_at|date:"M j, Y" }}</td><td>{{ order.get_status_display }}</td><td>{{ order.total_amount }}</td></tr>{% empty %}<tr><td class="empty" colspan="4">No orders yet.</td></tr>{% endfor %}</tbody></table></div>
+        </section>
+        <section class="section">
+            <div class="section-heading"><h2>Deliveries</h2><a href="{% url 'client-delivery-list' %}">Delivery history</a></div>
+            <div class="table-wrap"><table><thead><tr><th>Order</th><th>Scheduled</th><th>Status</th><th>Destination</th></tr></thead><tbody>{% for delivery in deliveries %}<tr><td>{{ delivery.order.order_reference }}</td><td>{{ delivery.scheduled_date|date:"M j, Y"|default:"-" }}</td><td>{{ delivery.get_status_display }}</td><td>{{ delivery.destination|default:"-" }}</td></tr>{% empty %}<tr><td class="empty" colspan="4">No deliveries yet.</td></tr>{% endfor %}</tbody></table></div>
+        </section>
+        <section class="section">
+            <div class="section-heading"><h2>Invoices</h2><a href="{% url 'invoice_list' %}">All invoices</a></div>
+            <div class="table-wrap"><table><thead><tr><th>Invoice</th><th>Due</th><th>Status</th><th>Total</th><th>Outstanding</th></tr></thead><tbody>{% for invoice in invoices %}<tr><td><a href="{% url 'invoice_detail' invoice.pk %}">{{ invoice.invoice_number }}</a></td><td>{{ invoice.due_date|default:"-" }}</td><td>{{ invoice.get_payment_status_display }}</td><td>{{ invoice.total_amount }}</td><td>{{ invoice.outstanding_balance }}</td></tr>{% empty %}<tr><td class="empty" colspan="5">No invoices yet.</td></tr>{% endfor %}</tbody></table></div>
+        </section>
+        <section class="section">
+            <div class="section-heading"><h2>Payments</h2></div>
+            <div class="table-wrap"><table><thead><tr><th>Date</th><th>Invoice</th><th>Method</th><th>Reference</th><th>Amount</th></tr></thead><tbody>{% for payment in payments %}<tr><td>{{ payment.payment_date }}</td><td>{{ payment.invoice.invoice_number }}</td><td>{{ payment.get_method_display }}</td><td>{{ payment.reference|default:"-" }}</td><td>{{ payment.amount }}</td></tr>{% empty %}<tr><td class="empty" colspan="5">No payments yet.</td></tr>{% endfor %}</tbody></table></div>
+        </section>
+        <section class="section">
+            <div class="section-heading"><h2>Complaints</h2><a href="{% url 'complaint_list' %}">Support requests</a></div>
+            <div class="table-wrap"><table><thead><tr><th>Title</th><th>Order</th><th>Status</th><th>Response</th></tr></thead><tbody>{% for complaint in complaints %}<tr><td>{{ complaint.title }}</td><td>{{ complaint.order.order_reference|default:"-" }}</td><td>{{ complaint.get_status_display }}</td><td>{{ complaint.staff_response|default:"-" }}</td></tr>{% empty %}<tr><td class="empty" colspan="4">No complaints yet.</td></tr>{% endfor %}</tbody></table></div>
+        </section>
+    </main>
+</body>
+</html>
