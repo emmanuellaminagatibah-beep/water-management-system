@@ -20,6 +20,8 @@
         tfoot th { text-align: right; }
         @media (max-width: 600px) { dl { grid-template-columns: 1fr; gap: .1rem; } dd { margin-bottom: .5rem; } }
     </style>
+    <link rel="stylesheet" href="/static/dashboards/css/aquaflow-visuals.css">
+    <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
 </head>
 <body>
     {% if messages %}<ul class="messages">{% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}</ul>{% endif %}
@@ -27,10 +29,19 @@
         <div><p><a href="{% url 'orders' %}">Orders</a></p><h1>{{ order.order_reference }}</h1></div>
         <div class="actions">
             {% if order.status == 'pending' %}
+            {% if user.is_staff or user.is_superuser or user.role == 'admin' or user.role == 'sales' %}
             <a href="{% url 'order_edit' order.pk %}">Edit order</a>
+            {% endif %}
+            {% if user.is_staff or user.is_superuser or user.role == 'admin' or user.role == 'sales' or user.role == 'warehouse' %}
             <form method="post" action="{% url 'order_confirm' order.pk %}">{% csrf_token %}<button type="submit">Confirm order</button></form>
+            {% endif %}
             {% elif order.status == 'confirmed' %}
+            {% if user.is_staff or user.is_superuser or user.role == 'admin' or user.role == 'sales' %}
             <form method="post" action="{% url 'order_cancel' order.pk %}">{% csrf_token %}<button type="submit">Cancel order</button></form>
+            {% endif %}
+            {% if user.is_staff or user.is_superuser or user.role == 'admin' or user.role == 'warehouse' %}
+            <form method="post" action="{% url 'order_prepare' order.pk %}">{% csrf_token %}<button type="submit">Prepare order</button></form>
+            {% endif %}
             {% endif %}
         </div>
     </header>

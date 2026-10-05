@@ -1,5 +1,7 @@
-from django.test import TestCase
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.test import TestCase
+from django.urls import reverse
 
 from products.models import Product
 
@@ -46,3 +48,28 @@ class AdjustStockTests(TestCase):
 	def test_non_positive_quantity_raises(self):
 		with self.assertRaises(ValidationError):
 			adjust_stock(self.product, 0, StockMovement.MovementType.RECEIVED)
+
+	def test_warehouse_can_record_stock_movement(self):
+		warehouse_user = get_user_model().objects.create_user(username='inventory-warehouse', role='warehouse')
+		self.client.force_login(warehouse_user)
+
+		response = self.client.post(reverse('stock-movement-create'), {
+			'product': self.product.pk,
+			'movement_type': StockMovement.MovementType.RECEIVED,
+			'quantity': '25',
+			'note': 'Morning delivery',
+			'reference': 'GRN-001',
+		})
+
+		self.assertRedirects(response, reverse('inventory-list'))
+		self.inventory.refresh_from_db()
+		self.assertEqual(self.inventory.quantity, 25)
+		self.assertEqual(StockMovement.objects.get().created_by, warehouse_user)
+
+	def test_sales_cannot_record_stock_movement(self):
+		sales_user = get_user_model().objects.create_user(username='inventory-sales', role='sales')
+		self.client.force_login(sales_user)
+
+		response = self.client.get(reverse('stock-movement-create'))
+
+		self.assertEqual(response.status_code, 403)

@@ -94,6 +94,39 @@ class DeliverySchedulingTests(TestCase):
 
 		self.assertEqual(response.status_code, 403)
 
+	def test_driver_only_sees_and_updates_assigned_deliveries(self):
+		own_delivery = self.schedule()
+		other_user = get_user_model().objects.create_user(username='another-driver', role='driver')
+		other_driver = Driver.objects.create(user=other_user, name='Other Driver', license_number='DL-003')
+		other_order = Order.objects.create(client=self.customer, status='confirmed')
+		other_delivery = self.schedule(driver=other_driver, order=other_order)
+		self.client.force_login(self.driver_user)
+
+		response = self.client.get(reverse('delivery_list'))
+
+		self.assertContains(response, own_delivery.order.order_reference)
+		self.assertNotContains(response, other_delivery.order.order_reference)
+		update_response = self.client.post(
+			reverse('delivery_update_status', args=[own_delivery.pk]),
+			{'status': 'in_transit'},
+		)
+		own_delivery.refresh_from_db()
+		self.assertEqual(update_response.status_code, 302)
+		self.assertEqual(own_delivery.status, 'in_transit')
+
+	def test_driver_cannot_update_another_drivers_delivery(self):
+		other_user = get_user_model().objects.create_user(username='unassigned-driver', role='driver')
+		other_driver = Driver.objects.create(user=other_user, name='Other Driver', license_number='DL-004')
+		delivery = self.schedule(driver=other_driver)
+		self.client.force_login(self.driver_user)
+
+		response = self.client.post(
+			reverse('delivery_update_status', args=[delivery.pk]),
+			{'status': 'delivered'},
+		)
+
+		self.assertEqual(response.status_code, 403)
+
 	def test_form_only_offers_active_drivers_vehicles_and_schedulable_orders(self):
 		inactive_driver = Driver.objects.create(name='Inactive Driver', license_number='DL-002', is_active=False)
 		inactive_vehicle = Vehicle.objects.create(registration_number='GT-002-26', status='inactive')
@@ -103,3 +136,67 @@ class DeliverySchedulingTests(TestCase):
 		self.assertNotIn(inactive_driver, form.fields['driver'].queryset)
 		self.assertNotIn(inactive_vehicle, form.fields['vehicle'].queryset)
 		self.assertNotIn(pending_order, form.fields['order'].queryset)
+
+
+class DeliveryDay8WorkflowTests(TestCase):
+	@classmethod
+	def setUpTestData(cls):
+		user_model = get_user_model()
+		cls.sales_user = user_model.objects.create_user(username='sales-day8', password='test-password', role='sales')
+		cls.driver_user = user_model.objects.create_user(username='driver-day8', password='test-password', role='driver')
+		cls.client_user = user_model.objects.create_user(username='client-day8', password='test-password', role='client')
+		cls.other_client_user = user_model.objects.create_user(username='other-client-day8', password='test-password', role='client')
+		cls.client = Client.objects.create(client_id='CLD-001', business_name='Acme Water', phone='0240000001', address='Kumasi', user=cls.client_user)
+		cls.other_client = Client.objects.create(client_id='CLD-002', business_name='Other Client', phone='0240000002', address='Tamale', user=cls.other_client_user)
+		cls.driver = Driver.objects.create(user=cls.driver_user, name='Day 8 Driver', phone='0240000003', license_number='DL-900')
+		cls.vehicle = Vehicle.objects.create(registration_number='GV-900-26', vehicle_type='Truck', capacity_litres=2000, status='active', is_active=True)
+		cls.order = Order.objects.create(client=cls.client, status='confirmed')
+		cls.other_order = Order.objects.create(client=cls.other_client, status='confirmed')
+
+	def test_sales_dispatches_then_driver_fully_completes_delivery(self):
+		delivery = schedule_delivery(
+			order=self.order,
+			driver=self.driver,
+			vehicle=self.vehicle,
+			destination='Kumasi Central',
+			scheduled_date=timezone.now() + timedelta(days=1),
+		)
+		self.client.force_login(self.sales_user)
+		response = self.client.post(
+			reverse('staff-delivery-update', args=[delivery.pk]),
+			{'status': 'DISPATCHED', 'status_note': 'En route'},
+		)
+		self.assertEqual(response.status_code, 302)
+		delivery.refresh_from_db()
+		self.assertEqual(delivery.status, 'DISPATCHED')
+		self.assertEqual(delivery.status_note, 'En route')
+
+		self.client.force_login(self.driver_user)
+		response = self.client.post(
+			reverse('driver-delivery-update', args=[delivery.pk]),
+			{'status': 'DELIVERED', 'status_note': 'Delivered to customer'},
+		)
+		self.assertEqual(response.status_code, 302)
+		delivery.refresh_from_db()
+		self.assertEqual(delivery.status, 'DELIVERED')
+		self.assertIsNotNone(delivery.completed_at)
+
+	def test_client_only_sees_own_delivery_records(self):
+		self.client.force_login(self.client_user)
+		own_delivery = schedule_delivery(
+			order=self.order,
+			driver=self.driver,
+			vehicle=self.vehicle,
+			destination='Kumasi Central',
+			scheduled_date=timezone.now() + timedelta(days=2),
+		)
+		schedule_delivery(
+			order=self.other_order,
+			driver=self.driver,
+			vehicle=self.vehicle,
+			destination='Tamale Central',
+			scheduled_date=timezone.now() + timedelta(days=3),
+		)
+		response = self.client.get(reverse('client-delivery-list'))
+		self.assertContains(response, own_delivery.order.order_reference)
+		self.assertNotContains(response, 'Tamale Central')

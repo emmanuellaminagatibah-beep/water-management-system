@@ -1,0 +1,21 @@
+<h1>My Deliveries</h1>
+
+{% for delivery in deliveries %}
+    <hr>
+
+    <p><strong>Order:</strong> {{ delivery.order.order_reference }}</p>
+    <p><strong>Order status:</strong> {{ delivery.order.get_status_display }}</p>
+    <p><strong>Delivery status:</strong> {{ delivery.get_status_display }}</p>
+    <p><strong>Destination:</strong> {{ delivery.destination }}</p>
+    <p><strong>Scheduled:</strong> {{ delivery.scheduled_date }}</p>
+
+    {% if delivery.completed_at %}
+        <p><strong>Completed:</strong> {{ delivery.completed_at }}</p>
+    {% endif %}
+
+    {% if delivery.status_note %}
+        <p><strong>Note:</strong> {{ delivery.status_note }}</p>
+    {% endif %}
+{% empty %}
+    <p>You have no delivery records.</p>
+{% endfor %}

@@ -18,11 +18,15 @@
         .status { font-weight: 600; }
         @media (max-width: 650px) { table { font-size: .88rem; } th, td { padding: .55rem .3rem; } }
     </style>
+    <link rel="stylesheet" href="/static/dashboards/css/aquaflow-visuals.css">
+    <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
 </head>
 <body>
     <header>
         <h1>Orders</h1>
+        {% if user.is_staff or user.is_superuser or user.role == 'admin' or user.role == 'sales' %}
         <a class="button" href="{% url 'order_create' %}">Create order</a>
+        {% endif %}
     </header>
     <form method="get" class="filters">
         <label>Search
@@ -54,7 +58,7 @@
                 <td>GH&#8373;{{ order.total_amount }}</td>
                 <td class="status">{{ order.get_status_display }}</td>
                 <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
-                <td><a href="{% url 'order_detail' order.pk %}">View</a> | <a href="{% url 'order_edit' order.pk %}">Edit</a></td>
+                <td><a href="{% url 'order_detail' order.pk %}">View</a>{% if user.is_staff or user.is_superuser or user.role == 'admin' or user.role == 'sales' %} | <a href="{% url 'order_edit' order.pk %}">Edit</a>{% endif %}</td>
             </tr>
             {% empty %}
             <tr><td colspan="6">No orders found.</td></tr>

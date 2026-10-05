@@ -2,4 +2,5 @@ from django.urls import path
 from products import views
 
 urlpatterns = [
+	path('', views.product_catalog, name='product_catalog'),
 ]

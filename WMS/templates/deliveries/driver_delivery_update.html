@@ -1,0 +1,14 @@
+<h1>Update Delivery</h1>
+
+<p><strong>Order:</strong> {{ delivery.order.order_reference }}</p>
+<p><strong>Destination:</strong> {{ delivery.destination }}</p>
+<p><strong>Current status:</strong> {{ delivery.get_status_display }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit">Save delivery result</button>
+</form>
+
+<a href="{% url 'driver-delivery-list' %}">Back to my deliveries</a>

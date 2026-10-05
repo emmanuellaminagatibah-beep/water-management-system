@@ -1,0 +1,18 @@
+<h1>My Assigned Deliveries</h1>
+
+{% for delivery in deliveries %}
+    <hr>
+
+    <p><strong>Order:</strong> {{ delivery.order.order_reference }}</p>
+    <p><strong>Client:</strong> {{ delivery.order.client.business_name|default:delivery.order.client.client_id }}</p>
+    <p><strong>Vehicle:</strong> {{ delivery.vehicle.registration_number }}</p>
+    <p><strong>Destination:</strong> {{ delivery.destination }}</p>
+    <p><strong>Scheduled:</strong> {{ delivery.scheduled_date }}</p>
+    <p><strong>Status:</strong> {{ delivery.get_status_display }}</p>
+
+    {% if delivery.status == 'DISPATCHED' %}
+        <a href="{% url 'driver-delivery-update' delivery.id %}">Update delivery result</a>
+    {% endif %}
+{% empty %}
+    <p>You have no assigned deliveries.</p>
+{% endfor %}
