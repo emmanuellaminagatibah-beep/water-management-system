@@ -1,7 +1,9 @@
 from collections import defaultdict
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+
+from accounts.models import User
 
 from Inventory.models import Inventory, StockMovement
 from Inventory.services import adjust_stock
@@ -86,5 +88,17 @@ def cancel_order(order, user=None):
 		)
 
 	order.status = 'cancelled'
+	order.save(update_fields=['status'])
+	return order
+
+
+@transaction.atomic
+def prepare_order(order, acting_user):
+	if not (acting_user.is_superuser or acting_user.role in {User.Role.ADMIN, User.Role.WAREHOUSE}):
+		raise PermissionDenied('Only administrators and warehouse staff can prepare orders.')
+	order = _locked_order(order)
+	if order.status != 'confirmed':
+		raise ValidationError('Only confirmed orders can be prepared.')
+	order.status = 'preparing'
 	order.save(update_fields=['status'])
 	return order

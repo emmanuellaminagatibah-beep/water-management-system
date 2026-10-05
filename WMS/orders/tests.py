@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.test import TestCase
 from django.utils import timezone
 from django.urls import reverse
@@ -11,7 +11,7 @@ from products.models import Product
 from Inventory.models import Inventory, StockMovement
 
 from .models import Order, OrderItem
-from .services import cancel_order, confirm_order
+from .services import cancel_order, confirm_order, prepare_order
 
 
 class OrderWorkflowTests(TestCase):
@@ -112,6 +112,83 @@ class OrderWorkflowTests(TestCase):
 		response = self.client.get(reverse('orders'), {'created_on': timezone.localdate().isoformat()})
 
 		self.assertContains(response, order.order_reference)
+
+	def test_sales_role_can_open_order_list_and_create_order(self):
+		sales_user = get_user_model().objects.create_user(username='sales-orders', role='sales')
+		self.client.force_login(sales_user)
+
+		self.assertEqual(self.client.get(reverse('orders')).status_code, 200)
+		self.assertEqual(self.client.get(reverse('order_create')).status_code, 200)
+
+	def test_warehouse_can_view_orders_but_cannot_create_them(self):
+		warehouse_user = get_user_model().objects.create_user(username='warehouse-orders', role='warehouse')
+		self.client.force_login(warehouse_user)
+
+		self.assertEqual(self.client.get(reverse('orders')).status_code, 200)
+		self.assertEqual(self.client.get(reverse('order_create')).status_code, 302)
+
+	def test_client_order_history_only_shows_their_orders(self):
+		client_user = get_user_model().objects.create_user(username='client-orders', role='client')
+		self.customer.user = client_user
+		self.customer.save()
+		own_order = Order.objects.create(client=self.customer)
+		other_client = Client.objects.create(
+			client_id='CL002', business_name='Other Customer', phone='0240000001', address='Tema',
+		)
+		other_order = Order.objects.create(client=other_client)
+		self.client.force_login(client_user)
+
+		response = self.client.get(reverse('my_orders'))
+
+		self.assertContains(response, own_order.order_reference)
+		self.assertNotContains(response, other_order.order_reference)
+
+	def test_client_can_place_order_for_their_linked_profile(self):
+		client_user = get_user_model().objects.create_user(username='client-order-form', role='client')
+		self.customer.user = client_user
+		self.customer.save()
+		self.client.force_login(client_user)
+
+		form_response = self.client.get(reverse('client_order_create'))
+		self.assertEqual(form_response.status_code, 200)
+		self.assertContains(form_response, f'name="client" value="{self.customer.pk}"')
+		self.assertNotContains(form_response, '<select name="client"')
+
+		response = self.client.post(reverse('client_order_create'), {
+			'client': self.customer.pk,
+			'items-TOTAL_FORMS': '1',
+			'items-INITIAL_FORMS': '0',
+			'items-MIN_NUM_FORMS': '1',
+			'items-MAX_NUM_FORMS': '1000',
+			'items-0-product': self.products[0].pk,
+			'items-0-quantity': '2',
+		})
+
+		self.assertRedirects(response, reverse('my_orders'))
+		order = Order.objects.get(created_by=client_user)
+		self.assertEqual(order.client, self.customer)
+
+	def test_client_cannot_submit_an_order_for_another_client(self):
+		client_user = get_user_model().objects.create_user(username='client-order-owner', role='client')
+		self.customer.user = client_user
+		self.customer.save()
+		other_client = Client.objects.create(
+			client_id='CL003', business_name='Not This User', phone='0240000003', address='Ho',
+		)
+		self.client.force_login(client_user)
+
+		response = self.client.post(reverse('client_order_create'), {
+			'client': other_client.pk,
+			'items-TOTAL_FORMS': '1',
+			'items-INITIAL_FORMS': '0',
+			'items-MIN_NUM_FORMS': '1',
+			'items-MAX_NUM_FORMS': '1000',
+			'items-0-product': self.products[0].pk,
+			'items-0-quantity': '1',
+		})
+
+		self.assertEqual(response.status_code, 200)
+		self.assertFalse(Order.objects.filter(created_by=client_user).exists())
 
 	def test_status_filter_and_all_supported_statuses(self):
 		order = self.create_order()
@@ -258,6 +335,25 @@ class OrderWorkflowTests(TestCase):
 		order.refresh_from_db()
 		self.assertEqual(order.status, 'pending')
 		self.assertFalse(StockMovement.objects.exists())
+
+	def test_warehouse_prepares_only_confirmed_orders(self):
+		order = self.create_order((1, 0, 0))
+		self.add_inventory(self.products[0], 10)
+		confirm_order(order, user=self.staff)
+		warehouse = get_user_model().objects.create_user(username='prepare-warehouse', role='warehouse')
+
+		prepared_order = prepare_order(order, acting_user=warehouse)
+
+		self.assertEqual(prepared_order.status, 'preparing')
+		with self.assertRaisesMessage(ValidationError, 'Only confirmed orders can be prepared.'):
+			prepare_order(order, acting_user=warehouse)
+
+	def test_sales_cannot_prepare_orders(self):
+		order = self.create_order()
+		sales = get_user_model().objects.create_user(username='prepare-sales', role='sales')
+
+		with self.assertRaises(PermissionDenied):
+			prepare_order(order, acting_user=sales)
 
 	def test_cancelled_confirmed_order_restores_stock_and_records_return(self):
 		order = self.create_order((20, 0, 0))

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Record stock movement | Water Management</title>
+    <style>
+        body { max-width: 760px; margin: 2rem auto; padding: 0 1rem; color: #173b3b; font: 16px/1.5 "Trebuchet MS", "Segoe UI", sans-serif; background: #f2f7f4; }
+        h1 { color: #123f40; font: 700 2rem Georgia, serif; }
+        a { color: #087568; }
+        form { display: grid; gap: .8rem; padding: 1.2rem; border: 1px solid #d5e2de; background: #fff; }
+        label { display: grid; gap: .3rem; font-weight: 700; }
+        input, select, textarea { width: 100%; padding: .6rem; border: 1px solid #a9beb8; font: inherit; }
+        button { justify-self: start; padding: .65rem 1rem; border: 0; color: #fff; background: #087568; font: inherit; cursor: pointer; }
+        .errorlist { color: #a12d27; }
+    </style>
+    <link rel="stylesheet" href="/static/dashboards/css/aquaflow-visuals.css">
+    <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
+</head>
+<body>
+    <p><a href="{% url 'inventory-list' %}">Back to inventory</a></p>
+    <h1>Record stock movement</h1>
+    <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Save movement</button></form>
+</body>
+</html>

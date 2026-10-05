@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#123f40">
+    <title>My orders | AquaFlow</title>
+    <style>
+        :root { --ink: #173b3b; --muted: #627773; --line: #d8e3de; --paper: #eff4f0; --white: #fff; --deep: #123f40; --teal: #087568; --coral: #c65e49; }
+        * { box-sizing: border-box; }
+        body { min-height: 100vh; margin: 0; color: var(--ink); font: 16px/1.5 "Trebuchet MS", "Segoe UI", sans-serif; background-color: var(--paper); background-image: repeating-linear-gradient(145deg, transparent 0 55px, rgba(18,63,64,.035) 55px 56px, transparent 56px 100px); }
+        a { color: inherit; }
+        .topbar { display: flex; min-height: 64px; align-items: center; justify-content: space-between; gap: 1rem; padding: .8rem clamp(1rem, 5vw, 4rem); color: #f4fbf8; background: var(--deep); }
+        .brand { color: white; font: 700 1.08rem Georgia, serif; text-decoration: none; }
+        .top-links { display: flex; gap: 1.2rem; color: rgba(255,255,255,.84); font-size: .88rem; }
+        main { width: min(1120px, 100%); margin: 0 auto; padding: 2rem clamp(1rem, 4vw, 3rem) 3rem; }
+        .breadcrumbs { margin: 0 0 1rem; color: var(--muted); font-size: .84rem; }
+        .breadcrumbs a { color: var(--teal); text-decoration: none; }
+        .page-heading { display: flex; align-items: end; justify-content: space-between; gap: 1.2rem; margin-bottom: 1.6rem; }
+        .eyebrow { margin: 0 0 .4rem; color: var(--coral); font-size: .72rem; font-weight: 700; text-transform: uppercase; }
+        h1 { margin: 0; color: var(--deep); font: 400 2.45rem/1.1 Georgia, serif; }
+        .intro { margin: .55rem 0 0; color: var(--muted); }
+        .button { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; padding: .65rem .9rem; color: #fff; background: var(--teal); font-size: .88rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+        .button:hover { background: var(--deep); }
+        .order-list { display: grid; gap: .7rem; }
+        .order-card { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(120px, .7fr) minmax(120px, .7fr) auto; align-items: center; gap: 1rem; padding: 1rem 1.2rem; border: 1px solid var(--line); border-left: 3px solid var(--teal); background: var(--white); }
+        .order-reference { margin: 0; color: var(--deep); font-weight: 700; }
+        .order-date { margin: .15rem 0 0; color: var(--muted); font-size: .8rem; }
+        .meta-label { display: block; margin-bottom: .2rem; color: var(--muted); font-size: .7rem; font-weight: 700; text-transform: uppercase; }
+        .status { display: inline-block; padding: .22rem .5rem; color: #175346; background: #e1f1e9; font-size: .78rem; font-weight: 700; }
+        .status-pending { color: #78502a; background: #f8ecd9; }
+        .status-cancelled, .status-failed { color: #963d32; background: #fae7e2; }
+        .amount { color: var(--deep); font-weight: 700; white-space: nowrap; }
+        .empty-state { padding: 2.2rem 1.3rem; border: 1px solid var(--line); background: var(--white); text-align: center; }
+        .empty-state .icon { margin: 0 0 .5rem; font-size: 2rem; }
+        .empty-state h2 { margin: 0; color: var(--deep); font: 400 1.5rem Georgia, serif; }
+        .empty-state p { margin: .4rem 0 1rem; color: var(--muted); }
+        .notice { padding: 1rem; border-left: 3px solid var(--coral); background: var(--white); }
+        .notice a { color: var(--teal); }
+        @media (max-width: 760px) { .order-card { grid-template-columns: 1fr 1fr; } .order-main { grid-column: 1 / -1; } }
+        @media (max-width: 520px) { .topbar { align-items: flex-start; flex-direction: column; } .top-links { width: 100%; justify-content: space-between; } .page-heading { align-items: flex-start; flex-direction: column; } h1 { font-size: 2rem; } .button { width: 100%; } }
+    </style>
+    <link rel="stylesheet" href="/static/dashboards/css/aquaflow-visuals.css">
+    <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/">AquaFlow</a>
+        <nav class="top-links" aria-label="Customer navigation"><a href="{% url 'dashboard' %}">Workspace</a><a href="{% url 'client_portal' %}">My account</a></nav>
+    </header>
+    <main>
+        <p class="breadcrumbs"><a href="{% url 'dashboard' %}">Workspace</a> / My orders</p>
+        <header class="page-heading">
+            <div><p class="eyebrow">Order history</p><h1>My orders</h1><p class="intro">Track progress and totals for your water orders.</p></div>
+            {% if client %}<a class="button" href="{% url 'client_order_create' %}">＋&nbsp; Place an order</a>{% endif %}
+        </header>
+        {% if not client %}
+        <p class="notice">Set up your customer profile before placing an order. <a href="{% url 'client_portal' %}">Complete account details</a>.</p>
+        {% else %}
+        <section class="order-list" aria-label="Order history">
+            {% for order in orders %}
+            <article class="order-card">
+                <div class="order-main"><p class="order-reference">{{ order.order_reference }}</p><p class="order-date">Placed {{ order.created_at|date:"M j, Y" }}</p></div>
+                <div><span class="meta-label">Status</span><span class="status status-{{ order.status }}">{{ order.get_status_display }}</span></div>
+                <div><span class="meta-label">Order total</span><span class="amount">GH&#8373;{{ order.total_amount }}</span></div>
+            </article>
+            {% empty %}
+            <div class="empty-state"><p class="icon" aria-hidden="true">📦</p><h2>Your order list is ready</h2><p>Once you place an order, its progress will appear here.</p><a class="button" href="{% url 'client_order_create' %}">Place your first order</a></div>
+            {% endfor %}
+        </section>
+        {% endif %}
+    </main>
+</body>
+</html>

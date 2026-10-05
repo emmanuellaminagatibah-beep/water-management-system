@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#123f40">
+    <title>Products | AquaFlow</title>
+    <style>
+        :root { --ink: #173b3b; --muted: #627773; --line: #d8e3de; --paper: #eff4f0; --white: #fff; --deep: #123f40; --teal: #087568; --coral: #c65e49; }
+        * { box-sizing: border-box; }
+        body { min-height: 100vh; margin: 0; color: var(--ink); font: 16px/1.5 "Trebuchet MS", "Segoe UI", sans-serif; background-color: var(--paper); background-image: repeating-linear-gradient(145deg, transparent 0 55px, rgba(18,63,64,.035) 55px 56px, transparent 56px 100px); }
+        a { color: inherit; }
+        .topbar { display: flex; min-height: 64px; align-items: center; justify-content: space-between; gap: 1rem; padding: .8rem clamp(1rem, 5vw, 4rem); color: #f4fbf8; background: var(--deep); }
+        .brand { color: #fff; font: 700 1.08rem Georgia, serif; text-decoration: none; }
+        .top-links { display: flex; gap: 1.2rem; color: rgba(255,255,255,.84); font-size: .88rem; }
+        main { width: min(1120px, 100%); margin: 0 auto; padding: 2rem clamp(1rem, 4vw, 3rem) 3rem; }
+        .breadcrumbs { margin: 0 0 1rem; color: var(--muted); font-size: .84rem; }
+        .breadcrumbs a { color: var(--teal); text-decoration: none; }
+        .page-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+        .eyebrow { margin: 0 0 .4rem; color: var(--coral); font-size: .72rem; font-weight: 700; text-transform: uppercase; }
+        h1 { margin: 0; color: var(--deep); font: 400 2.45rem/1.1 Georgia, serif; }
+        .intro { margin: .55rem 0 0; color: var(--muted); }
+        .button { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; padding: .65rem .9rem; color: #fff; background: var(--teal); font-size: .88rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+        .button:hover { background: var(--deep); }
+        .products { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 255px), 1fr)); gap: .8rem; }
+        .product { display: flex; min-height: 220px; flex-direction: column; padding: 1.15rem; border: 1px solid var(--line); border-top: 3px solid var(--teal); background: var(--white); box-shadow: 0 5px 18px rgba(18,63,64,.05); }
+        .product-top { display: flex; align-items: start; justify-content: space-between; gap: .7rem; }
+        .product-icon { display: grid; width: 44px; height: 44px; place-items: center; background: #e1f1e9; font-size: 1.4rem; }
+        .sku { color: var(--muted); font-size: .72rem; font-weight: 700; }
+        .product h2 { margin: .9rem 0 .25rem; color: var(--deep); font: 700 1.1rem Georgia, serif; }
+        .product-meta { margin: 0; color: var(--muted); font-size: .84rem; }
+        .product-bottom { display: flex; align-items: end; justify-content: space-between; gap: .8rem; margin-top: auto; padding-top: 1.1rem; }
+        .price-label { display: block; color: var(--muted); font-size: .68rem; font-weight: 700; text-transform: uppercase; }
+        .price { color: var(--deep); font-size: 1.1rem; font-weight: 700; white-space: nowrap; }
+        .product-link { color: var(--teal); font-size: .82rem; font-weight: 700; text-decoration: none; }
+        .empty-state { grid-column: 1 / -1; padding: 2.3rem 1.2rem; border: 1px solid var(--line); background: var(--white); text-align: center; }
+        .empty-state .icon { margin: 0 0 .5rem; font-size: 2rem; }
+        .empty-state h2 { margin: 0; color: var(--deep); font: 400 1.5rem Georgia, serif; }
+        .empty-state p { margin: .4rem 0 0; color: var(--muted); }
+        @media (max-width: 560px) { .topbar { align-items: flex-start; flex-direction: column; } .top-links { width: 100%; justify-content: space-between; } .page-heading { align-items: flex-start; flex-direction: column; } h1 { font-size: 2rem; } .button { width: 100%; } }
+    </style>
+    <link rel="stylesheet" href="/static/dashboards/css/aquaflow-visuals.css">
+    <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/">AquaFlow</a>
+        <nav class="top-links" aria-label="Customer navigation"><a href="{% url 'dashboard' %}">Workspace</a>{% if user.role == 'client' %}<a href="{% url 'my_orders' %}">My orders</a>{% endif %}</nav>
+    </header>
+    <main>
+        <p class="breadcrumbs"><a href="{% url 'dashboard' %}">Workspace</a> / Products</p>
+        <header class="page-heading">
+            <div><p class="eyebrow">AquaFlow catalogue</p><h1>Water for every day</h1><p class="intro">Browse available products and pack sizes.</p></div>
+            {% if user.role == 'client' %}<a class="button" href="{% url 'client_order_create' %}">Place an order</a>{% elif user.role == 'sales' or user.role == 'admin' or user.is_superuser %}<a class="button" href="{% url 'order_create' %}">Create an order</a>{% endif %}
+        </header>
+        <section class="products" aria-label="Available products">
+            {% for product in products %}
+            <article class="product">
+                <div class="product-top"><span class="product-icon" aria-hidden="true">💧</span><span class="sku">{{ product.sku }}</span></div>
+                <h2>{{ product.name }}</h2>
+                <p class="product-meta">{{ product.get_category_display }} · {{ product.get_package_size_display }}</p>
+                <div class="product-bottom"><div><span class="price-label">Unit price</span><span class="price">GH&#8373;{{ product.unit_price }}</span></div>{% if user.role == 'client' %}<a class="product-link" href="{% url 'client_order_create' %}">Order product</a>{% endif %}</div>
+            </article>
+            {% empty %}
+            <div class="empty-state"><p class="icon" aria-hidden="true">💧</p><h2>Products are being prepared</h2><p>There are no active products in the catalogue right now.</p></div>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+</html>
