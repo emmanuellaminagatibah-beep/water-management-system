@@ -4,6 +4,14 @@ from django.db import models
 
 class User(AbstractUser):
 
+    class Role(models.TextChoices):
+        ADMIN = 'admin', 'Administrator'
+        SALES = 'sales', 'Sales Staff'
+        WAREHOUSE = 'warehouse', 'Warehouse Staff'
+        DRIVER = 'driver', 'Driver'
+        ACCOUNTS = 'accounts', 'Accounts Staff'
+        CLIENT = 'client', 'Client'
+
     ROLE_CHOICES = [
         ('admin', 'Administrator'),
         ('sales', 'Sales Staff'),
