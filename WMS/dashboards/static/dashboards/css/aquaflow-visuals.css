@@ -1,0 +1,72 @@
+/* Route-aware AquaFlow canvases keep shared pages lively without reducing contrast. */
+body {
+    --surface-wash: linear-gradient(124deg, rgba(207, 235, 224, .97) 0%, rgba(246, 237, 207, .97) 52%, rgba(207, 229, 239, .96) 100%);
+    --surface-lines: repeating-linear-gradient(151deg, transparent 0 52px, rgba(28, 82, 77, .045) 52px 53px, transparent 53px 104px);
+    background-color: #e7efeb;
+    background-image: var(--surface-wash), var(--surface-lines);
+    background-position: center, center;
+    background-size: cover, auto;
+    background-repeat: no-repeat, repeat;
+    background-attachment: fixed;
+}
+
+body[data-surface="orders"] {
+    --surface-wash: linear-gradient(118deg, rgba(171, 224, 209, .97) 0%, rgba(243, 237, 194, .97) 49%, rgba(192, 222, 234, .96) 100%);
+    --surface-lines: repeating-linear-gradient(9deg, transparent 0 43px, rgba(8, 117, 104, .055) 43px 44px, transparent 44px 88px);
+}
+
+body[data-surface="inventory"] {
+    --surface-wash: linear-gradient(132deg, rgba(182, 229, 198, .97) 0%, rgba(221, 236, 182, .97) 44%, rgba(191, 222, 237, .96) 100%);
+    --surface-lines: repeating-linear-gradient(166deg, transparent 0 58px, rgba(49, 105, 78, .05) 58px 59px, transparent 59px 116px);
+}
+
+body[data-surface="billing"] {
+    --surface-wash: linear-gradient(121deg, rgba(238, 199, 188, .97) 0%, rgba(244, 224, 184, .97) 48%, rgba(190, 220, 234, .96) 100%);
+    --surface-lines: repeating-linear-gradient(27deg, transparent 0 50px, rgba(145, 79, 69, .045) 50px 51px, transparent 51px 102px);
+}
+
+body[data-surface="deliveries"] {
+    --surface-wash: linear-gradient(124deg, rgba(180, 216, 236, .97) 0%, rgba(200, 232, 197, .97) 49%, rgba(240, 199, 171, .94) 100%);
+    --surface-lines: repeating-linear-gradient(143deg, transparent 0 46px, rgba(54, 105, 125, .05) 46px 47px, transparent 47px 94px);
+}
+
+body[data-surface="clients"] {
+    --surface-wash: linear-gradient(127deg, rgba(241, 201, 183, .97) 0%, rgba(239, 229, 184, .97) 47%, rgba(176, 224, 204, .96) 100%);
+    --surface-lines: repeating-linear-gradient(18deg, transparent 0 55px, rgba(154, 89, 70, .045) 55px 56px, transparent 56px 112px);
+}
+
+body[data-surface="support"] {
+    --surface-wash: linear-gradient(120deg, rgba(208, 229, 174, .97) 0%, rgba(241, 218, 176, .97) 50%, rgba(231, 190, 180, .94) 100%);
+    --surface-lines: repeating-linear-gradient(157deg, transparent 0 48px, rgba(102, 111, 63, .05) 48px 49px, transparent 49px 96px);
+}
+
+body[data-surface="dashboard"] {
+    --surface-wash: linear-gradient(125deg, rgba(182, 224, 202, .97) 0%, rgba(237, 221, 177, .97) 47%, rgba(190, 216, 235, .96) 100%);
+    --surface-lines: repeating-linear-gradient(35deg, transparent 0 61px, rgba(21, 83, 78, .05) 61px 62px, transparent 62px 122px);
+}
+
+body[data-surface="admin"] {
+    --surface-wash: linear-gradient(122deg, rgba(180, 213, 230, .97) 0%, rgba(190, 227, 197, .97) 47%, rgba(241, 202, 177, .94) 100%);
+    --surface-lines: repeating-linear-gradient(148deg, transparent 0 54px, rgba(32, 78, 101, .05) 54px 55px, transparent 55px 108px);
+}
+
+body[data-surface="accounts"] {
+    --surface-wash: linear-gradient(120deg, rgba(191, 228, 201, .97) 0%, rgba(240, 222, 175, .97) 51%, rgba(232, 195, 181, .94) 100%);
+    --surface-lines: repeating-linear-gradient(12deg, transparent 0 51px, rgba(37, 103, 89, .05) 51px 52px, transparent 52px 102px);
+}
+
+body[data-surface="catalog"] {
+    --surface-wash: linear-gradient(125deg, rgba(174, 222, 218, .97) 0%, rgba(221, 235, 181, .97) 50%, rgba(200, 210, 235, .96) 100%);
+    --surface-lines: repeating-linear-gradient(160deg, transparent 0 56px, rgba(36, 102, 113, .05) 56px 57px, transparent 57px 112px);
+}
+
+body[data-surface="home"] {
+    --surface-wash: linear-gradient(126deg, rgba(179, 223, 207, .95), rgba(239, 219, 180, .95), rgba(195, 219, 233, .95));
+}
+
+@media (max-width: 700px) {
+    body {
+        background-attachment: scroll;
+        background-position: center, center, center;
+    }
+}

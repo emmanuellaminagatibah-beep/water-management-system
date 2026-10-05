@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ report_title }} report | AquaFlow</title>
+    <style>
+        body { max-width: 1180px; margin: 1.5rem auto; padding: 0 1rem; color: #173b3b; background: #f2f7f4; font: 16px/1.5 "Trebuchet MS", sans-serif; }
+        h1 { color: #123f40; font: 700 2rem Georgia, serif; }
+        a { color: #087568; }
+        form { display: flex; align-items: end; flex-wrap: wrap; gap: .7rem; padding: .9rem 0; border-bottom: 1px solid #d5e2de; }
+        label { display: grid; gap: .25rem; font-size: .82rem; }
+        input, button { min-height: 40px; padding: .45rem .6rem; border: 1px solid #a9beb8; font: inherit; }
+        button { color: white; background: #087568; border: 0; cursor: pointer; }
+        .table-wrap { overflow-x: auto; margin-top: 1rem; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { min-width: 90px; padding: .65rem; border-bottom: 1px solid #d5e2de; text-align: left; vertical-align: top; }
+        th { color: #57706d; font-size: .82rem; }
+        .errorlist { color: #a12d27; }
+    </style>
+    <link rel="stylesheet" href="/static/dashboards/css/aquaflow-visuals.css">
+    <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
+</head>
+<body>
+    <p><a href="{% url 'admin_dashboard' %}">Administrator dashboard</a></p>
+    <h1>{{ report_title }} report</h1>
+    <form method="get">
+        <label>Start date {{ form.start_date }}</label>
+        <label>End date {{ form.end_date }}</label>
+        <button type="submit">Apply dates</button>
+        <a href="{% url 'report_list' report_type %}">Clear</a>
+    </form>
+    {{ form.non_field_errors }}{{ form.end_date.errors }}
+    <div class="table-wrap"><table>
+        {% if report_type == 'sales' %}
+            <thead><tr><th>Invoice</th><th>Issue date</th><th>Client</th><th>Order</th><th>Total</th><th>Collected</th><th>Outstanding</th><th>Payments</th></tr></thead>
+            <tbody>{% for row in rows %}<tr><td>{{ row.invoice_number }}</td><td>{{ row.issue_date }}</td><td>{{ row.client }}</td><td>{{ row.order.order_reference }}</td><td>{{ row.total_amount }}</td><td>{{ row.amount_collected|default:0 }}</td><td>{{ row.outstanding_balance }}</td><td>{{ row.payment_count }}</td></tr>{% empty %}<tr><td colspan="8">No sales records for this period.</td></tr>{% endfor %}</tbody>
+        {% elif report_type == 'inventory' %}
+            <thead><tr><th>Date</th><th>Product</th><th>Movement</th><th>Quantity</th><th>Reference</th><th>Recorded by</th></tr></thead>
+            <tbody>{% for row in rows %}<tr><td>{{ row.created_at|date:"Y-m-d H:i" }}</td><td>{{ row.product.name }} ({{ row.product.sku }})</td><td>{{ row.get_movement_type_display }}</td><td>{{ row.quantity }}</td><td>{{ row.reference|default:"-" }}</td><td>{{ row.created_by|default:"-" }}</td></tr>{% empty %}<tr><td colspan="6">No stock movements for this period.</td></tr>{% endfor %}</tbody>
+        {% elif report_type == 'orders' %}
+            <thead><tr><th>Reference</th><th>Created</th><th>Client</th><th>Status</th><th>Lines</th><th>Units</th><th>Total</th></tr></thead>
+            <tbody>{% for row in rows %}<tr><td>{{ row.order_reference }}</td><td>{{ row.created_at|date:"Y-m-d" }}</td><td>{{ row.client }}</td><td>{{ row.get_status_display }}</td><td>{{ row.item_count }}</td><td>{{ row.item_quantity|default:0 }}</td><td>{{ row.total_amount }}</td></tr>{% empty %}<tr><td colspan="7">No orders for this period.</td></tr>{% endfor %}</tbody>
+        {% elif report_type == 'deliveries' %}
+            <thead><tr><th>Scheduled</th><th>Order</th><th>Client</th><th>Status</th><th>Vehicle</th><th>Driver</th></tr></thead>
+            <tbody>{% for row in rows %}<tr><td>{{ row.scheduled_date|date:"Y-m-d H:i"|default:"-" }}</td><td>{{ row.order.order_reference }}</td><td>{{ row.order.client }}</td><td>{{ row.get_status_display }}</td><td>{{ row.vehicle.registration_number }}</td><td>{{ row.driver }}</td></tr>{% empty %}<tr><td colspan="6">No deliveries for this period.</td></tr>{% endfor %}</tbody>
+        {% else %}
+            <thead><tr><th>Date</th><th>Invoice</th><th>Client</th><th>Method</th><th>Reference</th><th>Received by</th><th>Amount</th></tr></thead>
+            <tbody>{% for row in rows %}<tr><td>{{ row.payment_date }}</td><td>{{ row.invoice.invoice_number }}</td><td>{{ row.invoice.client }}</td><td>{{ row.get_method_display }}</td><td>{{ row.reference|default:"-" }}</td><td>{{ row.received_by|default:"-" }}</td><td>{{ row.amount }}</td></tr>{% empty %}<tr><td colspan="7">No payments for this period.</td></tr>{% endfor %}</tbody>
+        {% endif %}
+    </table></div>
+</body>
+</html>
