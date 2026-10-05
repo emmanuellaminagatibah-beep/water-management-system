@@ -13,23 +13,64 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
+def _env_bool(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-development-only-change-me',
-)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = _env_bool('DJANGO_DEBUG', default=True)
 
-ALLOWED_HOSTS = [host for host in os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',') if host]
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', '').strip()
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured('DJANGO_SECRET_KEY must be set when DJANGO_DEBUG is false.')
+    SECRET_KEY = 'local-development-only-do-not-use-in-production'
+if not DEBUG and (
+    len(SECRET_KEY) < 50
+    or len(set(SECRET_KEY)) < 5
+    or SECRET_KEY.startswith('django-insecure-')
+):
+    raise ImproperlyConfigured('DJANGO_SECRET_KEY must be a long, randomly generated production secret.')
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',')
+    if host.strip()
+]
+if DEBUG and not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
+if not DEBUG and not ALLOWED_HOSTS:
+    raise ImproperlyConfigured('DJANGO_ALLOWED_HOSTS must contain the production hostnames.')
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip().rstrip('/')
+    for origin in os.getenv('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
+
+SECURE_SSL_REDIRECT = _env_bool('DJANGO_SECURE_SSL_REDIRECT', default=not DEBUG)
+SESSION_COOKIE_SECURE = _env_bool('DJANGO_SESSION_COOKIE_SECURE', default=not DEBUG)
+CSRF_COOKIE_SECURE = _env_bool('DJANGO_CSRF_COOKIE_SECURE', default=not DEBUG)
+SECURE_HSTS_SECONDS = int(os.getenv('DJANGO_SECURE_HSTS_SECONDS', '0' if DEBUG else '31536000'))
+if SECURE_HSTS_SECONDS < 0:
+    raise ImproperlyConfigured('DJANGO_SECURE_HSTS_SECONDS cannot be negative.')
+SECURE_HSTS_INCLUDE_SUBDOMAINS = _env_bool('DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS', default=False)
+SECURE_HSTS_PRELOAD = _env_bool('DJANGO_SECURE_HSTS_PRELOAD', default=False)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+X_FRAME_OPTIONS = 'DENY'
+if _env_bool('DJANGO_TRUST_X_FORWARDED_PROTO', default=False):
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # Application definition
@@ -61,6 +102,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -92,7 +134,20 @@ WSGI_APPLICATION = 'WMS.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-if os.getenv('WMS_DB_ENGINE', 'sqlite3') == 'postgresql':
+DATABASE_ENGINE = os.getenv('WMS_DB_ENGINE', 'sqlite3' if DEBUG else 'postgresql').strip().lower()
+if not DEBUG and DATABASE_ENGINE != 'postgresql':
+	raise ImproperlyConfigured('Production deployments must use PostgreSQL; set WMS_DB_ENGINE=postgresql.')
+
+if DATABASE_ENGINE == 'postgresql':
+    if not DEBUG:
+        required_database_settings = ('POSTGRES_DB', 'POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_HOST')
+        missing_database_settings = [
+            name for name in required_database_settings if not os.getenv(name, '').strip()
+        ]
+        if missing_database_settings:
+            raise ImproperlyConfigured(
+                'Production PostgreSQL settings are missing: ' + ', '.join(missing_database_settings)
+            )
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -101,15 +156,19 @@ if os.getenv('WMS_DB_ENGINE', 'sqlite3') == 'postgresql':
             'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
             'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
             'PORT': os.getenv('POSTGRES_PORT', '5432'),
+            'CONN_MAX_AGE': int(os.getenv('POSTGRES_CONN_MAX_AGE', '60')),
+            'CONN_HEALTH_CHECKS': True,
         }
     }
-else:
+elif DATABASE_ENGINE == 'sqlite3':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+else:
+	raise ImproperlyConfigured('WMS_DB_ENGINE must be sqlite3 or postgresql.')
 
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -148,7 +207,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+    },
+}
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
@@ -156,10 +224,39 @@ LOGOUT_REDIRECT_URL = 'login'
 
 
 # Email
-# https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
+EMAIL_BACKEND_PATH = os.getenv(
+    'DJANGO_EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend',
+).strip()
+EMAIL_OPTIONS = {}
+if EMAIL_BACKEND_PATH == 'django.core.mail.backends.smtp.EmailBackend':
+    email_use_tls = _env_bool('EMAIL_USE_TLS', default=True)
+    email_use_ssl = _env_bool('EMAIL_USE_SSL', default=False)
+    if email_use_tls and email_use_ssl:
+        raise ImproperlyConfigured('EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be enabled.')
+    EMAIL_OPTIONS = {
+        'host': os.getenv('EMAIL_HOST', ''),
+        'port': int(os.getenv('EMAIL_PORT', '587')),
+        'username': os.getenv('EMAIL_HOST_USER', ''),
+        'password': os.getenv('EMAIL_HOST_PASSWORD', ''),
+        'use_tls': email_use_tls,
+        'use_ssl': email_use_ssl,
+        'timeout': int(os.getenv('EMAIL_TIMEOUT', '15')),
+    }
+    if not DEBUG and not EMAIL_OPTIONS['host']:
+        raise ImproperlyConfigured('EMAIL_HOST is required for the production SMTP backend.')
 
 MAILERS = {
     'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+        'BACKEND': EMAIL_BACKEND_PATH,
+        'OPTIONS': EMAIL_OPTIONS,
     },
 }
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'AquaFlow <noreply@localhost>' if DEBUG else '')
+SERVER_EMAIL = os.getenv('SERVER_EMAIL', DEFAULT_FROM_EMAIL)
+if not DEBUG and not DEFAULT_FROM_EMAIL.strip():
+    raise ImproperlyConfigured('DEFAULT_FROM_EMAIL must be configured in production.')
+
+CONTACT_EMAIL = os.getenv('WMS_CONTACT_EMAIL', '').strip()
+CONTACT_PHONE = os.getenv('WMS_CONTACT_PHONE', '').strip()
+CONTACT_LOCATION = os.getenv('WMS_CONTACT_LOCATION', '').strip()

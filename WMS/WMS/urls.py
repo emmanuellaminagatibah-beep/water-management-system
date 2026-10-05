@@ -17,7 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from dashboards import views as dashboard_views
+
+admin.site.site_header = 'Water Management System'
+admin.site.site_title = 'Water Management System'
+admin.site.index_title = 'Operations Dashboard'
+
 urlpatterns = [
+    path('', dashboard_views.home_view, name='home'),
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
 path('clients/', include('clients.urls')),
@@ -33,3 +40,7 @@ path('clients/', include('clients.urls')),
 
 
 ]
+
+handler403 = 'dashboards.views.permission_denied'
+handler404 = 'dashboards.views.page_not_found'
+handler500 = 'dashboards.views.server_error'
