@@ -1,11 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Dashboard</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ dashboard_title }} | Water Management</title>
+    <style>
+        :root { color-scheme: light; --ink: #173b3b; --muted: #57706d; --line: #d5e2de; --paper: #fbfdfb; --green: #087568; --deep: #123f40; }
+        * { box-sizing: border-box; }
+        body { margin: 0; color: var(--ink); font: 16px/1.5 "Trebuchet MS", "Segoe UI", sans-serif; background-color: #e9f0ec; background-image: repeating-linear-gradient(145deg, transparent 0 46px, rgba(17, 90, 79, .035) 46px 47px, transparent 47px 83px), repeating-linear-gradient(35deg, transparent 0 72px, rgba(17, 90, 79, .025) 72px 73px, transparent 73px 125px); }
+        a { color: inherit; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .9rem clamp(1rem, 5vw, 4rem); color: #f4fbf8; background: var(--deep); }
+        .brand { margin: 0; font: 700 1.05rem Georgia, serif; }
+        .account { display: flex; align-items: center; gap: 1rem; color: #d1e5df; font-size: .92rem; }
+        .account a { color: white; }
+        main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(1rem, 5vw, 4rem) 3rem; }
+        .intro { position: relative; isolation: isolate; display: flex; min-height: 265px; align-items: center; width: 100vw; margin: 0 calc(50% - 50vw) 2rem; padding: 3rem clamp(1rem, 5vw, 4rem); color: #fff; background-color: #164a4b; background-image: url("https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=2200&q=85"); background-position: center 57%; background-size: cover; }
+        .intro::before { position: absolute; z-index: -1; inset: 0; background: rgba(8, 38, 40, .58); content: ""; }
+        .intro-content { width: min(1180px, 100%); margin: 0 auto; }
+        .eyebrow { margin: 0 0 .5rem; color: #9edbd2; font-size: .78rem; font-weight: 700; text-transform: uppercase; }
+        h1 { margin: 0; color: #fff; font: 700 2.5rem/1.15 Georgia, serif; }
+        .intro p:last-child { max-width: 700px; margin: .6rem 0 0; color: rgba(255,255,255,.83); }
+        .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: .65rem; margin-bottom: 1.6rem; }
+        .metric { min-width: 0; padding: .8rem; border: 1px solid var(--line); background: var(--paper); }
+        .metric span { display: block; color: var(--muted); font-size: .82rem; }
+        .metric strong { display: block; color: var(--deep); font-size: 1.45rem; overflow-wrap: anywhere; }
+        .section-heading { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 .75rem; padding-bottom: .65rem; border-bottom: 1px solid var(--line); }
+        h2 { margin: 0; font-size: 1rem; }
+        .section-heading span { color: var(--muted); font-size: .82rem; }
+        .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 245px), 1fr)); align-items: start; gap: .8rem; }
+        .action { overflow: hidden; border: 1px solid var(--line); border-left: 3px solid var(--green); background: var(--paper); box-shadow: 0 4px 14px rgba(18, 63, 64, .045); transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease; }
+        .action:hover, .action[open] { border-color: var(--green); box-shadow: 0 8px 20px rgba(18, 63, 64, .11); transform: translateY(-2px); }
+        .action summary { display: grid; min-height: 100px; grid-template-columns: 48px minmax(0, 1fr) 24px; align-items: center; gap: .85rem; padding: 1rem; cursor: pointer; list-style: none; }
+        .action summary::-webkit-details-marker { display: none; }
+        .action summary:focus-visible { outline: 3px solid var(--green); outline-offset: -3px; }
+        .action-icon { display: grid; width: 48px; height: 48px; place-items: center; background: #dceee8; font-size: 1.55rem; }
+        .action:nth-child(4n + 2) .action-icon { background: #f8e7dc; }
+        .action:nth-child(4n + 3) .action-icon { background: #e4ebf3; }
+        .action:nth-child(4n + 4) .action-icon { background: #f1ecd2; }
+        .action-title { color: var(--deep); font-size: 1rem; font-weight: 700; }
+        .action-toggle { color: var(--green); font-size: 1.35rem; line-height: 1; transition: transform .15s ease; }
+        .action[open] .action-toggle { transform: rotate(45deg); }
+        .action-details { padding: 0 1rem 1rem 4.85rem; }
+        .action-details p { margin: 0 0 .8rem; color: var(--muted); font-size: .9rem; }
+        .action-link { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: .45rem; padding: .5rem .75rem; color: #fff; background: var(--green); font-size: .86rem; font-weight: 700; text-decoration: none; }
+        .action-link:hover, .action-link:focus-visible { background: var(--deep); }
+        @media (max-width: 560px) { .topbar { align-items: flex-start; flex-direction: column; } .account { width: 100%; justify-content: space-between; } .intro { min-height: 230px; margin-bottom: 1.5rem; background-position: 60% center; } h1 { font-size: 2rem; } main { padding-bottom: 2rem; } }
+        @media (prefers-reduced-motion: reduce) { .action { transition: none; } }
+    </style>
+    <link rel="stylesheet" href="/static/dashboards/css/aquaflow-visuals.css">
+    <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
 </head>
 <body>
-    <h1>Dashboard</h1>
-    <p>Welcome to the water management dashboard.</p>
+    <header class="topbar">
+        <p class="brand">Water Management System</p>
+        <div class="account">
+            <span>{{ request.user.get_full_name|default:request.user.username }}</span>
+            <a href="{% url 'logout' %}">Sign out</a>
+        </div>
+    </header>
+    <main>
+        <section class="intro" aria-labelledby="page-title">
+            <div class="intro-content">
+                <p class="eyebrow">Operations workspace</p>
+                <h1 id="page-title">{{ dashboard_title }} dashboard</h1>
+                <p>{{ dashboard_description }}</p>
+            </div>
+        </section>
+        <section class="metrics" aria-label="{{ dashboard_title }} overview">
+            {% for label, value in dashboard_metrics %}
+            <div class="metric"><span>{{ label }}</span><strong>{{ value }}</strong></div>
+            {% endfor %}
+        </section>
+        <section aria-labelledby="actions-title">
+            <div class="section-heading">
+                <h2 id="actions-title">Your workspace</h2>
+                <span>{{ dashboard_actions|length }} available areas</span>
+            </div>
+            <nav class="actions" aria-label="Available work areas">
+                {% for emoji, title, url, description in dashboard_actions %}
+                <details class="action">
+                    <summary>
+                        <span class="action-icon" aria-hidden="true">{{ emoji }}</span>
+                        <span class="action-title">{{ title }}</span>
+                        <span class="action-toggle" aria-hidden="true">+</span>
+                    </summary>
+                    <div class="action-details">
+                        <p>{{ description }}</p>
+                        <a class="action-link" href="{{ url }}">Open workspace <span aria-hidden="true">&#8594;</span></a>
+                    </div>
+                </details>
+                {% endfor %}
+            </nav>
+        </section>
+    </main>
 </body>
 </html>

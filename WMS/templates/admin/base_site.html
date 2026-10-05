@@ -1,0 +1,245 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | Water Management System{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script defer src="{% static 'dashboards/js/site.js' %}?v=20261004"></script>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  :root {
+    --wms-primary: #0f766e;
+    --wms-primary-deep: #134e4a;
+    --wms-primary-soft: #ccfbf1;
+    --wms-accent: #2563eb;
+    --wms-accent-soft: #dbeafe;
+    --wms-sky: #7dd3fc;
+    --wms-surface: #f5fbff;
+    --wms-panel: rgba(255, 255, 255, 0.78);
+    --wms-border: rgba(15, 118, 110, 0.14);
+    --wms-text: #10233d;
+    --wms-muted: #58708a;
+    --wms-shadow: 0 20px 48px rgba(15, 23, 42, 0.12);
+    --wms-glow: 0 12px 30px rgba(37, 99, 235, 0.18);
+  }
+
+  html, body {
+    min-height: 100%;
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top left, rgba(125, 211, 252, 0.34), transparent 32%),
+      radial-gradient(circle at bottom right, rgba(20, 184, 166, 0.28), transparent 28%),
+      linear-gradient(135deg, #eef8ff 0%, #eefcf9 30%, #f3f4ff 100%);
+    color: var(--wms-text);
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    position: relative;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255,255,255,0.18), rgba(255,255,255,0));
+    pointer-events: none;
+  }
+
+  #container {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 20px 18px 40px;
+  }
+
+  #header {
+    background: linear-gradient(135deg, #102a43 0%, #0f766e 32%, #2563eb 100%);
+    border-bottom: none;
+    box-shadow: 0 16px 36px rgba(14, 116, 144, 0.18);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  #branding h1 {
+    color: #ffffff;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: none;
+    font-size: 1.45rem;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.18);
+  }
+
+  #branding h1 a {
+    color: #ffffff;
+    text-decoration: none;
+  }
+
+  #user-tools {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    padding: 7px 12px;
+    backdrop-filter: blur(6px);
+  }
+
+  #user-tools a {
+    color: #ecfeff;
+    font-weight: 600;
+  }
+
+  #branding {
+    padding-left: 18px;
+  }
+
+  #main {
+    background: transparent;
+    padding-top: 10px;
+  }
+
+  #content {
+    background: transparent;
+  }
+
+  .module caption, .module h2, .module h3 {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(15, 118, 110, 0.1));
+    color: var(--wms-primary-deep);
+    border: 1px solid var(--wms-border);
+    border-radius: 16px 16px 0 0;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  .module {
+    border: 1px solid var(--wms-border);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: var(--wms-shadow);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+  }
+
+  .module table,
+  .module tbody,
+  .module td,
+  .module th {
+    background: transparent;
+  }
+
+  .object-tools a,
+  .button,
+  input[type="submit"],
+  input[type="button"],
+  .submit-row input {
+    background: linear-gradient(135deg, var(--wms-primary), var(--wms-accent));
+    border: none;
+    border-radius: 12px;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: var(--wms-glow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .object-tools a:hover,
+  .button:hover,
+  input[type="submit"]:hover,
+  input[type="button"]:hover,
+  .submit-row input:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(20, 184, 166, 0.28);
+  }
+
+  .module.aligned, .module.collapse {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+  }
+
+  .app-list a,
+  .model a,
+  .dashboard a {
+    border-radius: 14px;
+    transition: all 0.2s ease;
+    padding: 10px 12px;
+  }
+
+  .app-list a:hover,
+  .model a:hover,
+  .dashboard a:hover {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.06), rgba(20, 184, 166, 0.08));
+    transform: translateY(-1px);
+  }
+
+  #nav-sidebar {
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--wms-border);
+    border-radius: 18px;
+    padding: 12px;
+    backdrop-filter: blur(8px);
+    box-shadow: var(--wms-shadow);
+  }
+
+  .sidebar .module {
+    box-shadow: none;
+  }
+
+  .breadcrumbs {
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid var(--wms-border);
+    border-radius: 14px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+  }
+
+  .calendar td,
+  .calendar th,
+  .calendar .today,
+  .calendar .event {
+    border-radius: 8px;
+  }
+
+  .calendar .today {
+    background: linear-gradient(135deg, var(--wms-accent), var(--wms-primary));
+    color: #ffffff;
+  }
+
+  .errornote,
+  .help,
+  .warning {
+    border-radius: 12px;
+  }
+
+  .paginator a,
+  .paginator span {
+    border-radius: 8px;
+  }
+
+  .changelist-form-container,
+  .change-list,
+  .change-form {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--wms-border);
+    border-radius: 20px;
+    box-shadow: var(--wms-shadow);
+    padding: 18px;
+    backdrop-filter: blur(10px);
+  }
+
+  .app-list .model {
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(15, 118, 110, 0.1);
+    border-radius: 18px;
+    padding: 10px 12px;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+  }
+</style>
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">💧 Water Management System</a></h1>
+{% endblock %}
