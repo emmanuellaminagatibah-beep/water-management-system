@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Record payment | {{ invoice.invoice_number }}</title>
+    <link rel="stylesheet" href="/static/dashboards/css/aquaflow-visuals.css">
+    <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
+</head>
+<body>
+    <main>
+        <p><a href="{% url 'invoice_detail' invoice.id %}">Back to invoice</a></p>
+        <h1>Record payment</h1>
+        <p>{{ invoice.invoice_number }} · Outstanding {{ invoice.outstanding_balance }}</p>
+        <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Record payment</button></form>
+    </main>
+</body>
+</html>

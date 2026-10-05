@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Payment history | {{ invoice.invoice_number }}</title>
+    <link rel="stylesheet" href="/static/dashboards/css/aquaflow-visuals.css">
+    <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
+</head>
+<body>
+    <main>
+        <p><a href="{% url 'invoice_detail' invoice.id %}">Back to invoice</a></p>
+        <h1>Payment history</h1>
+        <p>{{ invoice.invoice_number }} · {{ invoice.get_payment_status_display }} · Outstanding {{ invoice.outstanding_balance }}</p>
+        {% if request.user.role == 'admin' or request.user.role == 'accounts' %}{% if invoice.outstanding_balance > 0 %}<p><a href="{% url 'payment_create' invoice.id %}">Record payment</a></p>{% endif %}{% endif %}
+        <div style="overflow-x:auto"><table>
+            <thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>Reference</th><th>Received by</th></tr></thead>
+            <tbody>{% for payment in payments %}<tr><td>{{ payment.payment_date }}</td><td>{{ payment.amount }}</td><td>{{ payment.get_method_display }}</td><td>{{ payment.reference|default:"-" }}</td><td>{{ payment.received_by|default:"-" }}</td></tr>{% empty %}<tr><td colspan="5">No payments recorded for this invoice.</td></tr>{% endfor %}</tbody>
+        </table></div>
+    </main>
+</body>
+</html>
