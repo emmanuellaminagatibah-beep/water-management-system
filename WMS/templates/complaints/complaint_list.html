@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#123f40">
+    <title>Support requests | AquaFlow</title>
+    <style>
+        :root { --ink: #173b3b; --muted: #627773; --line: #d8e3de; --paper: #eff4f0; --white: #fff; --deep: #123f40; --teal: #087568; --coral: #c65e49; }
+        * { box-sizing: border-box; }
+        body { min-height: 100vh; margin: 0; color: var(--ink); font: 16px/1.5 "Trebuchet MS", "Segoe UI", sans-serif; background-color: var(--paper); background-image: repeating-linear-gradient(145deg, transparent 0 55px, rgba(18,63,64,.035) 55px 56px, transparent 56px 100px); }
+        a { color: inherit; }
+        .topbar { display: flex; min-height: 64px; align-items: center; justify-content: space-between; gap: 1rem; padding: .8rem clamp(1rem, 5vw, 4rem); color: #f4fbf8; background: var(--deep); }
+        .brand { color: #fff; font: 700 1.08rem Georgia, serif; text-decoration: none; }
+        .top-links { display: flex; gap: 1.2rem; color: rgba(255,255,255,.84); font-size: .88rem; }
+        main { width: min(1120px, 100%); margin: 0 auto; padding: 2rem clamp(1rem, 4vw, 3rem) 3rem; }
+        .breadcrumbs { margin: 0 0 1rem; color: var(--muted); font-size: .84rem; }
+        .breadcrumbs a { color: var(--teal); text-decoration: none; }
+        .page-heading { margin-bottom: 1.4rem; }
+        .eyebrow { margin: 0 0 .4rem; color: var(--coral); font-size: .72rem; font-weight: 700; text-transform: uppercase; }
+        h1 { margin: 0; color: var(--deep); font: 400 2.4rem/1.12 Georgia, serif; }
+        .intro { margin: .55rem 0 0; color: var(--muted); }
+        .messages { margin: 0 0 1rem; padding: .75rem 1rem; color: #175346; background: #e1f1e9; border-left: 3px solid var(--teal); }
+        .support-layout { display: grid; grid-template-columns: minmax(270px, .8fr) minmax(0, 1.2fr); align-items: start; gap: 1rem; }
+        .compose-panel, .request-list { min-width: 0; padding: 1.2rem; border: 1px solid var(--line); background: var(--white); }
+        .panel-heading { margin: 0 0 .3rem; color: var(--deep); font: 700 1.05rem Georgia, serif; }
+        .panel-intro { margin: 0 0 1rem; color: var(--muted); font-size: .83rem; }
+        form { display: grid; gap: .75rem; }
+        form p { margin: 0; }
+        label { display: block; margin-bottom: .3rem; color: var(--ink); font-size: .8rem; font-weight: 700; }
+        input, select, textarea { width: 100%; min-height: 42px; padding: .6rem .7rem; color: var(--ink); background: #fbfdfc; border: 1px solid #c9d8d1; border-radius: 2px; font: inherit; }
+        textarea { min-height: 110px; resize: vertical; }
+        input:focus, select:focus, textarea:focus { border-color: var(--teal); outline: 0; box-shadow: 0 0 0 3px rgba(8,117,104,.13); }
+        button, .action-link { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; justify-self: start; padding: .6rem .9rem; color: #fff; background: var(--teal); border: 0; font: inherit; font-size: .86rem; font-weight: 700; text-decoration: none; cursor: pointer; }
+        button:hover, .action-link:hover { background: var(--deep); }
+        .empty-profile { padding: .9rem; color: #694329; background: #f8ecd9; font-size: .86rem; }
+        .empty-profile a { color: var(--deep); font-weight: 700; }
+        .request-list { display: grid; gap: .6rem; }
+        .request-card { padding: .9rem; border: 1px solid var(--line); border-left: 3px solid var(--teal); background: #fbfdfc; }
+        .request-top { display: flex; align-items: start; justify-content: space-between; gap: .8rem; }
+        .request-card h3 { margin: 0; color: var(--deep); font-size: .97rem; }
+        .request-card p { margin: .35rem 0 0; color: var(--muted); font-size: .84rem; }
+        .request-meta { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem .8rem; margin-top: .65rem; color: var(--muted); font-size: .76rem; }
+        .status { padding: .2rem .45rem; color: #175346; background: #e1f1e9; font-weight: 700; }
+        .status-open { color: #78502a; background: #f8ecd9; }
+        .status-closed { color: #58625f; background: #e8ece9; }
+        .priority { color: var(--coral); font-weight: 700; }
+        .action-link { min-height: 34px; margin-top: .65rem; padding: .4rem .65rem; font-size: .78rem; }
+        .empty-state { padding: 1.7rem .8rem; color: var(--muted); text-align: center; }
+        .empty-state span { display: block; margin-bottom: .45rem; font-size: 1.8rem; }
+        @media (max-width: 760px) { .support-layout { grid-template-columns: 1fr; } }
+        @media (max-width: 520px) { .topbar { align-items: flex-start; flex-direction: column; } .top-links { width: 100%; justify-content: space-between; } h1 { font-size: 2rem; } .request-top { align-items: flex-start; flex-direction: column; } }
+    </style>
+    <link rel="stylesheet" href="/static/dashboards/css/aquaflow-visuals.css">
+    <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/">AquaFlow</a>
+        <nav class="top-links" aria-label="Support navigation"><a href="{% url 'dashboard' %}">Workspace</a>{% if user.role == 'client' %}<a href="{% url 'client_portal' %}">My account</a>{% else %}<a href="{% url 'orders' %}">Orders</a>{% endif %}</nav>
+    </header>
+    <main>
+        <p class="breadcrumbs"><a href="{% url 'dashboard' %}">Workspace</a> / {% if user.role == 'client' %}Support requests{% else %}Complaints{% endif %}</p>
+        <header class="page-heading"><p class="eyebrow">Customer care</p><h1>{% if user.role == 'client' %}Support requests{% else %}Complaint desk{% endif %}</h1><p class="intro">{% if user.role == 'client' %}Send a request and follow updates from our team.{% else %}Review customer concerns and keep each request moving.{% endif %}</p></header>
+        {% for message in messages %}<p class="messages" role="status">{{ message }}</p>{% endfor %}
+        <div class="support-layout">
+            {% if form %}
+            <section class="compose-panel" aria-labelledby="submit-title">
+                <h2 class="panel-heading" id="submit-title">Tell us what happened</h2>
+                <p class="panel-intro">Include the order if it relates to a recent delivery.</p>
+                <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Submit request</button></form>
+            </section>
+            {% elif user.role == 'client' and not client %}
+            <section class="compose-panel"><h2 class="panel-heading">Complete your account first</h2><p class="panel-intro">We need your customer details to route support requests.</p><p class="empty-profile">Set up your profile to contact our team. <a href="{% url 'client_portal' %}">Complete account details</a>.</p></section>
+            {% endif %}
+            <section class="request-list" aria-label="{% if user.role == 'client' %}Your support requests{% else %}Customer complaints{% endif %}">
+                <h2 class="panel-heading">{% if user.role == 'client' %}Your requests{% else %}Recent complaints{% endif %}</h2>
+                {% for complaint in complaints %}
+                <article class="request-card">
+                    <div class="request-top"><h3>{{ complaint.subject }}</h3><span class="status status-{{ complaint.status }}">{{ complaint.get_status_display }}</span></div>
+                    {% if user.role != 'client' %}<p>{{ complaint.client }}{% if complaint.order %} · {{ complaint.order.order_reference }}{% endif %}</p>{% elif complaint.description %}<p>{{ complaint.description|truncatechars:150 }}</p>{% endif %}
+                    <div class="request-meta"><span>{{ complaint.created_at|date:"M j, Y" }}</span><span class="priority">{{ complaint.get_priority_display }} priority</span></div>
+                    {% if user.role != 'client' %}<a class="action-link" href="{% url 'complaint_update' complaint.pk %}">Review request</a>{% endif %}
+                </article>
+                {% empty %}
+                <div class="empty-state"><span aria-hidden="true">💬</span><p>No requests to show yet.</p></div>
+                {% endfor %}
+            </section>
+        </div>
+    </main>
+</body>
+</html>
