@@ -15,6 +15,8 @@
         .messages { padding: .75rem 1rem; background: #e7f4ed; }
         @media (max-width: 650px) { table { font-size: .88rem; } th, td { padding: .55rem .3rem; } }
     </style>
+    <link rel="stylesheet" href="/static/dashboards/css/aquaflow-visuals.css">
+    <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
 </head>
 <body>
     <header>
@@ -26,7 +28,7 @@
     {% for message in messages %}<p class="messages">{{ message }}</p>{% endfor %}
     <table>
         <thead>
-            <tr><th>Order reference</th><th>Driver</th><th>Vehicle</th><th>Destination</th><th>Scheduled date</th><th>Status</th></tr>
+            <tr><th>Order reference</th><th>Driver</th><th>Vehicle</th><th>Destination</th><th>Scheduled date</th><th>Status</th><th>Update</th></tr>
         </thead>
         <tbody>
             {% for delivery in deliveries %}
@@ -37,9 +39,24 @@
                 <td>{{ delivery.destination }}</td>
                 <td>{{ delivery.scheduled_date|date:"Y-m-d H:i" }}</td>
                 <td>{{ delivery.get_status_display }}</td>
+                <td>
+                    {% if user.role == 'admin' or user.role == 'warehouse' or user.role == 'driver' and delivery.status == 'scheduled' or user.role == 'driver' and delivery.status == 'in_transit' %}
+                    <form method="post" action="{% url 'delivery_update_status' delivery.pk %}">
+                        {% csrf_token %}
+                        <select name="status" aria-label="Update delivery status">
+                            {% if user.role == 'driver' %}
+                            {% if delivery.status == 'scheduled' %}<option value="in_transit">In transit</option>{% else %}<option value="delivered">Delivered</option><option value="failed">Failed</option>{% endif %}
+                            {% else %}
+                            {% for value, label in status_choices %}<option value="{{ value }}"{% if delivery.status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+                            {% endif %}
+                        </select>
+                        <button type="submit">Save</button>
+                    </form>
+                    {% else %}-{% endif %}
+                </td>
             </tr>
             {% empty %}
-            <tr><td colspan="6">No deliveries scheduled.</td></tr>
+            <tr><td colspan="7">No deliveries scheduled for this account.</td></tr>
             {% endfor %}
         </tbody>
     </table>

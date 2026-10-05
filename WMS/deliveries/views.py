@@ -8,9 +8,10 @@ from django.views.decorators.http import require_POST
 from accounts.decorators import role_required
 from accounts.models import User
 from clients.models import Client
+from orders.models import Order
 
 from .forms import DeliveryScheduleForm, DriverDeliveryStatusForm, StaffDeliveryStatusForm
-from .models import Delivery, Driver
+from .models import Delivery, Driver, normalize_delivery_status
 from .services import change_delivery_status, schedule_delivery
 
 
@@ -106,30 +107,60 @@ def staff_delivery_update(request, pk):
 	return render(request, 'deliveries/staff_delivery_update.html', {'delivery': delivery, 'form': form})
 
 
-@role_required('admin', 'warehouse', 'driver')
+@role_required('admin', 'sales', 'driver')
 @require_POST
 def delivery_update_status(request, pk):
 	delivery = get_object_or_404(Delivery.objects.select_related('driver__user'), pk=pk)
-	if request.user.role == 'driver' and delivery.driver.user_id != request.user.id:
-		return HttpResponseForbidden()
-
-	status = request.POST.get('status')
-	if status is None:
-		messages.error(request, 'Choose a valid delivery status.')
-		return redirect('delivery_list')
-	status = status.strip().upper()
 	if request.user.role == 'driver':
+		if not hasattr(request.user, 'driver_profile') or delivery.driver_id != request.user.driver_profile.id:
+			return HttpResponseForbidden()
 		allowed_statuses = {
 			Delivery.Status.SCHEDULED: {Delivery.Status.DISPATCHED},
-			Delivery.Status.DISPATCHED: {Delivery.Status.DELIVERED, Delivery.Status.FAILED},
+			Delivery.Status.DISPATCHED: {
+				Delivery.Status.DELIVERED,
+				Delivery.Status.PARTIALLY_DELIVERED,
+				Delivery.Status.FAILED,
+			},
 		}.get(delivery.status, set())
 	else:
-		allowed_statuses = {value for value, _ in Delivery.Status.choices}
+		if request.user.role == 'sales':
+			allowed_statuses = {
+				Delivery.Status.SCHEDULED: {Delivery.Status.DISPATCHED, Delivery.Status.CANCELLED},
+			}.get(delivery.status, set())
+		else:
+			allowed_statuses = {value for value, _ in Delivery.Status.choices}
+
+	status = request.POST.get('status')
+	if status is None or not str(status).strip():
+		messages.error(request, 'Choose a valid delivery status.')
+		return redirect('delivery_list')
+	status = normalize_delivery_status(status)
 	if status in allowed_statuses:
 		delivery.status = status
-		if status == Delivery.Status.DELIVERED:
-			delivery.delivered_at = timezone.now()
-		delivery.save(update_fields=['status', 'delivered_at', 'updated_at'])
+		status_note = (request.POST.get('status_note', '') or '').strip()
+		if status == Delivery.Status.DISPATCHED:
+			delivery.dispatched_at = timezone.now()
+		if status in {Delivery.Status.DELIVERED, Delivery.Status.PARTIALLY_DELIVERED, Delivery.Status.FAILED, Delivery.Status.CANCELLED}:
+			delivery.completed_at = timezone.now()
+			if status in {Delivery.Status.DELIVERED, Delivery.Status.FAILED, Delivery.Status.CANCELLED}:
+				delivery.delivered_at = timezone.now()
+		if status_note:
+			delivery.status_note = status_note
+		delivery.save(update_fields=['status', 'status_note', 'dispatched_at', 'completed_at', 'delivered_at', 'updated_at'])
+		if status == Delivery.Status.PARTIALLY_DELIVERED:
+			Order.objects.filter(pk=delivery.order_id).update(status='partially_delivered')
+		elif status == Delivery.Status.DELIVERED:
+			open_deliveries = Delivery.objects.filter(order_id=delivery.order_id).exclude(
+				status__in=[Delivery.Status.DELIVERED, Delivery.Status.PARTIALLY_DELIVERED, Delivery.Status.CANCELLED],
+			).exists()
+			if not open_deliveries:
+				has_partial_delivery = Delivery.objects.filter(
+					order_id=delivery.order_id,
+					status=Delivery.Status.PARTIALLY_DELIVERED,
+				).exists()
+				Order.objects.filter(pk=delivery.order_id).update(
+					status='partially_delivered' if has_partial_delivery else 'delivered',
+				)
 		messages.success(request, f'Delivery status updated to {delivery.get_status_display()}.')
 	else:
 		messages.error(request, 'Choose a valid delivery status.')
