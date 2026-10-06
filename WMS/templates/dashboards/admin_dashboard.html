@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Administrator dashboard | AquaFlow</title>
+    <title>Administrator dashboard | Agatibahsprings</title>
     <style>
         :root { --ink: #173b3b; --muted: #627773; --line: #d5e2de; --paper: #f2f7f4; --deep: #123f40; --teal: #087568; --white: #fff; --coral: #c65e49; }
         * { box-sizing: border-box; }
@@ -15,14 +15,25 @@
         h1 { margin: 0; font-size: 2rem; }
         h2 { margin: 0; font-size: 1.2rem; }
         .intro { display: flex; align-items: end; justify-content: space-between; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+        .area-nav, .reports { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+        .area-nav a, .reports a { display: inline-flex; min-height: 40px; align-items: center; gap: .45rem; padding: .45rem .7rem; text-decoration: none; }
+        .area-nav a { color: var(--deep); background: var(--white); border: 1px solid var(--line); }
+        .area-nav a:hover { border-color: var(--teal); color: var(--teal); }
+        .nav-icon, .report-icon, .metric-icon, .section-icon { width: 1.1rem; height: 1.1rem; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+        .nav-icon { color: var(--teal); }
         .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: .65rem; padding: 1rem 0; }
         .metric { min-width: 0; padding: .85rem; border: 1px solid var(--line); background: var(--white); }
-        .metric span { display: block; color: var(--muted); font-size: .82rem; }
+        .metric-label { display: flex; align-items: center; gap: .5rem; color: var(--muted); font-size: .82rem; }
+        .metric-icon { color: var(--teal); }
         .metric strong { display: block; color: var(--deep); font-size: 1.55rem; overflow-wrap: anywhere; }
-        .reports { display: flex; flex-wrap: wrap; gap: .5rem; padding: .6rem 0 1rem; }
-        .reports a { padding: .45rem .7rem; color: white; background: var(--teal); text-decoration: none; }
+        .reports { padding: .6rem 0 1rem; }
+        .reports a { color: white; background: var(--teal); }
+        .reports a:hover { background: var(--deep); }
+        .report-icon { width: 1rem; height: 1rem; }
         .section { padding: 1rem 0; border-top: 1px solid var(--line); }
         .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: .7rem; }
+        .section-title { display: inline-flex; align-items: center; gap: .5rem; }
+        .section-icon { color: var(--teal); }
         .table-wrap { max-width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; background: var(--white); }
             .table-wrap table { min-width: 620px; }
@@ -34,27 +45,33 @@
     <script defer src="/static/dashboards/js/site.js?v=20261004"></script>
 </head>
 <body>
-    <header><a href="{% url 'dashboard' %}">AquaFlow</a><span>{{ request.user.get_full_name|default:request.user.username }} · <a href="{% url 'logout' %}">Sign out</a></span></header>
+    <header><a href="{% url 'dashboard' %}">Agatibahsprings</a><span>{{ request.user.get_full_name|default:request.user.username }} · <a href="{% url 'logout' %}">Sign out</a></span></header>
     <main>
-        <section class="intro"><div><p>Administrator workspace</p><h1>Operations at a glance</h1></div><nav aria-label="Operational areas"><a href="{% url 'orders' %}">Orders</a> · <a href="{% url 'inventory-list' %}">Inventory</a> · <a href="{% url 'delivery_list' %}">Deliveries</a> · <a href="{% url 'client_list' %}">Clients</a> · <a href="{% url 'logout' %}">Sign out</a></nav></section>
+        <section class="intro"><div><p>Administrator workspace</p><h1>Operations at a glance</h1></div><nav class="area-nav" aria-label="Operational areas">
+            <a href="{% url 'orders' %}"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 4h14v17H5zM8 8h8M8 12h8M8 16h5"></path></svg>Orders</a>
+            <a href="{% url 'inventory-list' %}"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 9 5-9 5-9-5 9-5zM3 12l9 5 9-5M3 16l9 5 9-5"></path></svg>Inventory</a>
+            <a href="{% url 'delivery_list' %}"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h11v11H3zM14 10h4l3 3v4h-7z"></path><circle cx="7.5" cy="18" r="2"></circle><circle cx="17.5" cy="18" r="2"></circle></svg>Deliveries</a>
+            <a href="{% url 'client_list' %}"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3"></circle><path d="M3 20v-1a6 6 0 0 1 12 0v1zM16 5.5a3 3 0 0 1 0 5.8M18 14a5 5 0 0 1 3 5v1h-3"></path></svg>Clients</a>
+            <a href="{% url 'logout' %}"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 17l5-5-5-5M15 12H3M13 4h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"></path></svg>Sign out</a>
+        </nav></section>
         <section class="metrics" aria-label="Current operating totals">
-            <div class="metric"><span>Total clients</span><strong>{{ total_clients }}</strong></div>
-            <div class="metric"><span>Pending orders</span><strong>{{ pending_orders }}</strong></div>
-            <div class="metric"><span>Deliveries awaiting completion</span><strong>{{ deliveries_awaiting }}</strong></div>
-            <div class="metric"><span>Products with available stock</span><strong>{{ available_products }}</strong></div>
-            <div class="metric"><span>Low-stock products</span><strong>{{ low_stock_products }}</strong></div>
-            <div class="metric"><span>Outstanding invoices</span><strong>{{ outstanding_total }}</strong></div>
-            <div class="metric"><span>Open complaints</span><strong>{{ open_complaints }}</strong></div>
+            <div class="metric"><span class="metric-label"><svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3"></circle><path d="M3 20v-1a6 6 0 0 1 12 0v1zM16 5.5a3 3 0 0 1 0 5.8M18 14a5 5 0 0 1 3 5v1h-3"></path></svg>Total clients</span><strong>{{ total_clients }}</strong></div>
+            <div class="metric"><span class="metric-label"><svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 4h14v17H5zM8 8h8M8 12h8M8 16h5"></path></svg>Pending orders</span><strong>{{ pending_orders }}</strong></div>
+            <div class="metric"><span class="metric-label"><svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h11v11H3zM14 10h4l3 3v4h-7z"></path><circle cx="7.5" cy="18" r="2"></circle><circle cx="17.5" cy="18" r="2"></circle></svg>Deliveries awaiting completion</span><strong>{{ deliveries_awaiting }}</strong></div>
+            <div class="metric"><span class="metric-label"><svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 9 5-9 5-9-5 9-5zM3 12l9 5 9-5M3 16l9 5 9-5"></path></svg>Products with available stock</span><strong>{{ available_products }}</strong></div>
+            <div class="metric"><span class="metric-label"><svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3 22 20H2L12 3zM12 9v5M12 17h.01"></path></svg>Low-stock products</span><strong>{{ low_stock_products }}</strong></div>
+            <div class="metric"><span class="metric-label"><svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18M7 15h4"></path></svg>Outstanding invoices</span><strong>{{ outstanding_total }}</strong></div>
+            <div class="metric"><span class="metric-label"><svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 13v-2a8 8 0 0 1 16 0v2"></path><path d="M4 12h3v6H5a2 2 0 0 1-2-2v-2a2 2 0 0 1 1-2zM20 12h-3v6h2a2 2 0 0 0 2-2v-2a2 2 0 0 0-1-2z"></path></svg>Open complaints</span><strong>{{ open_complaints }}</strong></div>
         </section>
         <nav class="reports" aria-label="Reports">
-            <a href="{% url 'report_list' 'sales' %}">Sales</a>
-            <a href="{% url 'report_list' 'inventory' %}">Inventory</a>
-            <a href="{% url 'report_list' 'orders' %}">Orders</a>
-            <a href="{% url 'report_list' 'deliveries' %}">Deliveries</a>
-            <a href="{% url 'report_list' 'payments' %}">Payments</a>
+            <a href="{% url 'report_list' 'sales' %}"><svg class="report-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 19V5M4 19h17M8 15l4-4 3 2 5-6"></path></svg>Sales</a>
+            <a href="{% url 'report_list' 'inventory' %}"><svg class="report-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 9 5-9 5-9-5 9-5zM3 12l9 5 9-5M3 16l9 5 9-5"></path></svg>Inventory</a>
+            <a href="{% url 'report_list' 'orders' %}"><svg class="report-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 4h14v17H5zM8 8h8M8 12h8M8 16h5"></path></svg>Orders</a>
+            <a href="{% url 'report_list' 'deliveries' %}"><svg class="report-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h11v11H3zM14 10h4l3 3v4h-7z"></path><circle cx="7.5" cy="18" r="2"></circle><circle cx="17.5" cy="18" r="2"></circle></svg>Deliveries</a>
+            <a href="{% url 'report_list' 'payments' %}"><svg class="report-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18M7 15h4"></path></svg>Payments</a>
         </nav>
         <section class="section">
-            <div class="section-heading"><h2>Recent payments</h2><a href="{% url 'report_list' 'payments' %}">Payment report</a></div>
+            <div class="section-heading"><h2 class="section-title"><svg class="section-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18M7 15h4"></path></svg>Recent payments</h2><a href="{% url 'report_list' 'payments' %}">Payment report</a></div>
             <div class="table-wrap"><table>
                 <thead><tr><th>Date</th><th>Invoice</th><th>Client</th><th>Method</th><th>Amount</th><th>Received by</th></tr></thead>
                 <tbody>{% for payment in recent_payments %}<tr><td>{{ payment.payment_date }}</td><td>{{ payment.invoice.invoice_number }}</td><td>{{ payment.invoice.client }}</td><td>{{ payment.get_method_display }}</td><td>{{ payment.amount }}</td><td>{{ payment.received_by|default:"-" }}</td></tr>{% empty %}<tr><td colspan="6">No payments recorded.</td></tr>{% endfor %}</tbody>

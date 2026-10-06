@@ -1,4 +1,4 @@
-/* Route-aware AquaFlow canvases keep shared pages lively without reducing contrast. */
+/* Route-aware brand canvases keep shared pages lively without reducing contrast. */
 body {
     --surface-wash: linear-gradient(124deg, rgba(207, 235, 224, .97) 0%, rgba(246, 237, 207, .97) 52%, rgba(207, 229, 239, .96) 100%);
     --surface-lines: repeating-linear-gradient(151deg, transparent 0 52px, rgba(28, 82, 77, .045) 52px 53px, transparent 53px 104px);

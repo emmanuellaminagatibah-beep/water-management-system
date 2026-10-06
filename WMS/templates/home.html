@@ -5,8 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#123b3d">
-    <meta name="description" content="AquaFlow coordinates dependable water service, delivery, and customer care.">
-    <title>AquaFlow | Water, managed with care</title>
+    <meta name="description" content="Agatibahsprings coordinates dependable water service, delivery, and customer care.">
+    <title>Agatibahsprings | Water, managed with care</title>
     <style>
         :root { --forest: #123b3d; --deep: #0a292b; --mint: #b9d6c7; --paper: #f2f5ef; --coral: #e17b62; --ink: #173a3a; --muted: #5e706d; }
         * { box-sizing: border-box; }
@@ -37,6 +37,8 @@
         .about-intro { max-width: 650px; margin: 1rem 0 2.5rem; color: var(--muted); }
         .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
         .step { padding-top: 1rem; border-top: 1px solid #b8c9c0; }
+        .step-label { display: flex; align-items: center; gap: .65rem; }
+        .step-icon { width: 1.5rem; height: 1.5rem; flex: 0 0 auto; color: var(--forest); fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
         .step-number { color: #b9503e; font-size: .75rem; font-weight: 700; }
         .step h3 { margin: .45rem 0 .35rem; color: var(--forest); font: 700 1rem "Trebuchet MS", "Segoe UI", sans-serif; }
         .step p { max-width: 320px; margin: 0; color: var(--muted); font-size: .92rem; }
@@ -89,7 +91,7 @@
     <main>
         <section class="hero" aria-labelledby="hero-title">
             <header class="topbar">
-                <a class="wordmark" href="{% url 'home' %}">AquaFlow</a>
+                <a class="wordmark" href="{% url 'home' %}">Agatibahsprings</a>
                 <nav class="nav" aria-label="Main navigation">
                     <a href="#about">About</a>
                     <a href="#contact">Contact</a>
@@ -103,20 +105,38 @@
             <div class="hero-content">
                 <p class="eyebrow">Water for everyday life</p>
                 <h1 id="hero-title">Reliable water, from source to doorstep.</h1>
-                <p class="hero-copy">AquaFlow brings orders, delivery coordination, and customer care together in one dependable service.</p>
+                <p class="hero-copy">Agatibahsprings brings orders, delivery coordination, and customer care together in one dependable service.</p>
                 <a class="hero-link" href="#about">Get to know us <span aria-hidden="true">&#8594;</span></a>
             </div>
             <p class="hero-caption">A more connected way to manage water service</p>
         </section>
         <section class="about" id="about" aria-labelledby="about-title">
             <div class="section-inner">
-                <p class="section-kicker">About AquaFlow</p>
+                <p class="section-kicker">About Agatibahsprings</p>
                 <h2 id="about-title">Good service starts with a clear view of every step.</h2>
                 <p class="about-intro">We help teams coordinate the work behind dependable water service, from the first customer request to delivery and follow-up.</p>
                 <div class="steps">
-                    <article class="step"><span class="step-number">01 / PLAN</span><h3>Understand the need</h3><p>Keep customer details and requests organized so the right service can be prepared.</p></article>
-                    <article class="step"><span class="step-number">02 / DELIVER</span><h3>Coordinate the work</h3><p>Connect orders, stock, vehicles, and delivery teams in one operating flow.</p></article>
-                    <article class="step"><span class="step-number">03 / SUPPORT</span><h3>Stay accountable</h3><p>Follow up on deliveries, payments, and feedback with a clear record of what happened.</p></article>
+                    <article class="step">
+                        <div class="step-label">
+                            <svg class="step-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4.5h6M8.5 10h7M8.5 14h4"></path></svg>
+                            <span class="step-number">01 / PLAN</span>
+                        </div>
+                        <h3>Understand the need</h3><p>Keep customer details and requests organized so the right service can be prepared.</p>
+                    </article>
+                    <article class="step">
+                        <div class="step-label">
+                            <svg class="step-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h11v11H3zM14 10h4l3 3v4h-7z"></path><circle cx="7.5" cy="18" r="2"></circle><circle cx="17.5" cy="18" r="2"></circle><path d="M17 10v3h4"></path></svg>
+                            <span class="step-number">02 / DELIVER</span>
+                        </div>
+                        <h3>Coordinate the work</h3><p>Connect orders, stock, vehicles, and delivery teams in one operating flow.</p>
+                    </article>
+                    <article class="step">
+                        <div class="step-label">
+                            <svg class="step-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 13v-2a8 8 0 0 1 16 0v2"></path><path d="M4 12h3v6H5a2 2 0 0 1-2-2v-2a2 2 0 0 1 1-2zM20 12h-3v6h2a2 2 0 0 0 2-2v-2a2 2 0 0 0-1-2z"></path><path d="M17 19a5 5 0 0 1-5 2h-1"></path></svg>
+                            <span class="step-number">03 / SUPPORT</span>
+                        </div>
+                        <h3>Stay accountable</h3><p>Follow up on deliveries, payments, and feedback with a clear record of what happened.</p>
+                    </article>
                 </div>
             </div>
         </section>
@@ -125,7 +145,7 @@
                 <div>
                     <p class="section-kicker">Contact</p>
                     <h2 id="contact-title">Let’s make water service work better.</h2>
-                    <p class="contact-copy">AquaFlow brings order management, delivery coordination, and customer support into one workspace. Sign in to manage your service, or create an account to get started.</p>
+                    <p class="contact-copy">Agatibahsprings brings order management, delivery coordination, and customer support into one workspace. Sign in to manage your service, or create an account to get started.</p>
                 </div>
                 <div class="contact-details">
                     {% if contact_email %}<p><strong>Email</strong><a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>{% endif %}
@@ -136,6 +156,6 @@
             </div>
         </section>
     </main>
-    <footer><p>&copy; {% now "Y" %} AquaFlow</p><p><a href="{% url 'login' %}">Staff sign in</a></p></footer>
+    <footer><p>&copy; {% now "Y" %} Agatibahsprings</p><p><a href="{% url 'login' %}">Staff sign in</a></p></footer>
 </body>
 </html>

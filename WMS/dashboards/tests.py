@@ -17,7 +17,7 @@ class RoleDashboardTests(TestCase):
 
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, f'href="{reverse("login")}"')
-		self.assertContains(response, 'About AquaFlow')
+		self.assertContains(response, 'About Agatibahsprings')
 		self.assertContains(response, 'id="contact"')
 		self.assertContains(response, 'Sign in to contact your service team')
 

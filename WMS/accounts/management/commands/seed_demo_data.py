@@ -23,7 +23,7 @@ from accounts.models import User
 
 
 class Command(BaseCommand):
-	help = 'Safely create or advance a complete AquaFlow demonstration workflow.'
+	help = 'Safely create or advance a complete Agatibahsprings demonstration workflow.'
 
 	@transaction.atomic
 	def handle(self, *args, **options):
@@ -41,7 +41,7 @@ class Command(BaseCommand):
 			user=client_user,
 			defaults={
 				'client_id': 'DEMO-CLIENT-001',
-				'business_name': 'AquaFlow Demo Customer',
+				'business_name': 'Agatibahsprings Demo Customer',
 				'phone': '0240000100',
 				'email': 'demo-client@example.test',
 				'address': 'Accra, Ghana',

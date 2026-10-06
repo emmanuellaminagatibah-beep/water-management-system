@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 import os
 from pathlib import Path
+import dj_database_url 
 
 from django.core.exceptions import ImproperlyConfigured
 
@@ -151,12 +152,12 @@ if DATABASE_ENGINE == 'postgresql':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('POSTGRES_DB', 'water_management'),
-            'USER': os.getenv('POSTGRES_USER', 'postgres'),
-            'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
-            'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
-            'PORT': os.getenv('POSTGRES_PORT', '5432'),
-            'CONN_MAX_AGE': int(os.getenv('POSTGRES_CONN_MAX_AGE', '60')),
+            'NAME': os.environ.get('POSTGRES_DB', 'water_management'),
+            'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+            'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+            'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+            'CONN_MAX_AGE': int(os.environ.get('POSTGRES_CONN_MAX_AGE', '60')),
             'CONN_HEALTH_CHECKS': True,
         }
     }
@@ -168,7 +169,7 @@ elif DATABASE_ENGINE == 'sqlite3':
         }
     }
 else:
-	raise ImproperlyConfigured('WMS_DB_ENGINE must be sqlite3 or postgresql.')
+    raise ImproperlyConfigured('WMS_DB_ENGINE must be sqlite3 or postgresql.')
 
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -252,7 +253,7 @@ MAILERS = {
         'OPTIONS': EMAIL_OPTIONS,
     },
 }
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'AquaFlow <noreply@localhost>' if DEBUG else '')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Agatibahsprings <noreply@localhost>' if DEBUG else '')
 SERVER_EMAIL = os.getenv('SERVER_EMAIL', DEFAULT_FROM_EMAIL)
 if not DEBUG and not DEFAULT_FROM_EMAIL.strip():
     raise ImproperlyConfigured('DEFAULT_FROM_EMAIL must be configured in production.')
