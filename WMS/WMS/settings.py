@@ -47,7 +47,7 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 if DEBUG and not ALLOWED_HOSTS:
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver', 'agatibahsprings.onrender.com']
 if not DEBUG and not ALLOWED_HOSTS:
     raise ImproperlyConfigured('DJANGO_ALLOWED_HOSTS must contain the production hostnames.')
 
