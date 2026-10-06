@@ -35,7 +35,7 @@ EMAIL_PORT=587
 EMAIL_HOST_USER=<smtp user>
 EMAIL_HOST_PASSWORD=<smtp password>
 EMAIL_USE_TLS=true
-DEFAULT_FROM_EMAIL=AquaFlow <noreply@example.com>
+DEFAULT_FROM_EMAIL=Agatibahsprings <noreply@example.com>
 ```
 
 Set `DJANGO_TRUST_X_FORWARDED_PROTO=true` only when the application is behind a trusted proxy that sets `X-Forwarded-Proto`. The default production configuration redirects to HTTPS and enables secure session/CSRF cookies. HSTS defaults to one year but does not automatically cover subdomains or opt into browser preload. Before enabling `DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS=true` or `DJANGO_SECURE_HSTS_PRELOAD=true`, verify every affected hostname serves HTTPS and that the domain owner intends the long-lived policy. Django may report HSTS deployment warnings until that domain-specific decision is made. `WMS_CONTACT_EMAIL`, `WMS_CONTACT_PHONE`, and `WMS_CONTACT_LOCATION` are optional public contact details.
