@@ -140,27 +140,37 @@ if not DEBUG and DATABASE_ENGINE != 'postgresql':
 	raise ImproperlyConfigured('Production deployments must use PostgreSQL; set WMS_DB_ENGINE=postgresql.')
 
 if DATABASE_ENGINE == 'postgresql':
-    if not DEBUG:
-        required_database_settings = ('POSTGRES_DB', 'POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_HOST')
-        missing_database_settings = [
-            name for name in required_database_settings if not os.getenv(name, '').strip()
-        ]
-        if missing_database_settings:
-            raise ImproperlyConfigured(
-                'Production PostgreSQL settings are missing: ' + ', '.join(missing_database_settings)
+    database_url = os.getenv('DATABASE_URL', '').strip()
+    if database_url:
+        DATABASES = {
+            'default': dj_database_url.parse(
+                database_url,
+                conn_max_age=int(os.environ.get('POSTGRES_CONN_MAX_AGE', '60')),
+                conn_health_checks=True,
             )
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('POSTGRES_DB', 'water_management'),
-            'USER': os.environ.get('POSTGRES_USER', 'postgres'),
-            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
-            'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
-            'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-            'CONN_MAX_AGE': int(os.environ.get('POSTGRES_CONN_MAX_AGE', '60')),
-            'CONN_HEALTH_CHECKS': True,
         }
-    }
+    else:
+        if not DEBUG:
+            required_database_settings = ('POSTGRES_DB', 'POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_HOST')
+            missing_database_settings = [
+                name for name in required_database_settings if not os.getenv(name, '').strip()
+            ]
+            if missing_database_settings:
+                raise ImproperlyConfigured(
+                    'Production PostgreSQL settings are missing: ' + ', '.join(missing_database_settings)
+                )
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': os.environ.get('POSTGRES_DB', 'water_management'),
+                'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+                'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+                'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+                'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+                'CONN_MAX_AGE': int(os.environ.get('POSTGRES_CONN_MAX_AGE', '60')),
+                'CONN_HEALTH_CHECKS': True,
+            }
+        }
 elif DATABASE_ENGINE == 'sqlite3':
     DATABASES = {
         'default': {

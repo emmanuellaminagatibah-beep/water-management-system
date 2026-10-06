@@ -25,11 +25,6 @@ DJANGO_SECRET_KEY=<long randomly generated secret>
 DJANGO_ALLOWED_HOSTS=app.example.com
 DJANGO_CSRF_TRUSTED_ORIGINS=https://app.example.com
 WMS_DB_ENGINE=postgresql
-POSTGRES_DB=<database name>
-POSTGRES_USER=<database user>
-POSTGRES_PASSWORD=<database password>
-POSTGRES_HOST=<database host>
-POSTGRES_PORT=5432
 EMAIL_HOST=<smtp host>
 EMAIL_PORT=587
 EMAIL_HOST_USER=<smtp user>
@@ -37,6 +32,13 @@ EMAIL_HOST_PASSWORD=<smtp password>
 EMAIL_USE_TLS=true
 DEFAULT_FROM_EMAIL=Agatibahsprings <noreply@example.com>
 ```
+
+For Render, add the PostgreSQL database's **Internal Database URL** to the web
+service as `DATABASE_URL`, and set `WMS_DB_ENGINE=postgresql`. The app accepts
+that URL directly; the individual `POSTGRES_DB`, `POSTGRES_USER`,
+`POSTGRES_PASSWORD`, `POSTGRES_HOST`, and `POSTGRES_PORT` variables are only
+needed when `DATABASE_URL` is not set. Use the **External Database URL** for
+connections from your local machine, not from the hosted web service.
 
 Set `DJANGO_TRUST_X_FORWARDED_PROTO=true` only when the application is behind a trusted proxy that sets `X-Forwarded-Proto`. The default production configuration redirects to HTTPS and enables secure session/CSRF cookies. HSTS defaults to one year but does not automatically cover subdomains or opt into browser preload. Before enabling `DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS=true` or `DJANGO_SECURE_HSTS_PRELOAD=true`, verify every affected hostname serves HTTPS and that the domain owner intends the long-lived policy. Django may report HSTS deployment warnings until that domain-specific decision is made. `WMS_CONTACT_EMAIL`, `WMS_CONTACT_PHONE`, and `WMS_CONTACT_LOCATION` are optional public contact details.
 
@@ -52,11 +54,16 @@ python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 ```
 
-Start the WSGI application with the provider's assigned port:
+The Django project is in the repository's `WMS` subdirectory. If the hosting
+service starts in the repository root (as Render does when its Root Directory
+is blank), set its start command to:
 
 ```text
-gunicorn WMS.wsgi:application --bind 0.0.0.0:$PORT
+gunicorn --chdir WMS WMS.wsgi:application --bind 0.0.0.0:$PORT
 ```
+
+Alternatively, set the service Root Directory to `WMS` and use
+`gunicorn WMS.wsgi:application --bind 0.0.0.0:$PORT`.
 
 Configure the platform's health check to request `/`. Create the first privileged account with `python manage.py createsuperuser`. Do not run `seed_demo_data` in production; the command refuses to create its known-password demonstration users when `DEBUG` is disabled.
 
