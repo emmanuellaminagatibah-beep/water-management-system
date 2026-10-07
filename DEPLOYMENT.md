@@ -46,6 +46,12 @@ Set `DJANGO_TRUST_X_FORWARDED_PROTO=true` only when the application is behind a 
 
 Generate `DJANGO_SECRET_KEY` with a cryptographically secure generator, store it only in the provider's secret store, and use a different value for each environment. For example, run `python -c "import secrets; print(secrets.token_urlsafe(64))"` locally, then enter the result directly into the provider's secret manager. Never commit the value or use the local development fallback in production.
 
+For Render, open the web service's **Environment** settings and add or replace
+the variable named exactly `DJANGO_SECRET_KEY` with a newly generated value.
+Do not use the placeholder text, a short value, or Django's `django-insecure-`
+development key. Save the environment change to trigger a redeploy. Render's
+environment variables are separate from your local `.env` file.
+
 ## Release Commands
 
 Run these commands from the `WMS` directory as part of a release or one-off deployment task:

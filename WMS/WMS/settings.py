@@ -41,7 +41,11 @@ if not DEBUG and (
     or len(set(SECRET_KEY)) < 5
     or SECRET_KEY.startswith('django-insecure-')
 ):
-    raise ImproperlyConfigured('DJANGO_SECRET_KEY must be a long, randomly generated production secret.')
+    raise ImproperlyConfigured(
+        'DJANGO_SECRET_KEY must be at least 50 characters, contain at least 5 unique '
+        'characters, and not start with "django-insecure-" when DJANGO_DEBUG is false. '
+        'Generate a new key and set it in the deployment environment.'
+    )
 
 ALLOWED_HOSTS = [
     host.strip()
@@ -216,7 +220,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
