@@ -13,11 +13,13 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 import os
 from pathlib import Path
 import dj_database_url 
+from dotenv import load_dotenv
 
 from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR.parent / '.env')
 
 
 def _env_bool(name, default=False):
@@ -27,7 +29,7 @@ def _env_bool(name, default=False):
     return value.strip().lower() in {'1', 'true', 'yes', 'on'}
 
 
-DEBUG = _env_bool('DJANGO_DEBUG', default=True)
+DEBUG = _env_bool('DJANGO_DEBUG', default=False)
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', '').strip()
 if not SECRET_KEY:
@@ -103,6 +105,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

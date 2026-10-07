@@ -17,7 +17,9 @@ python -m pip install -r requirements.txt
 
 ## Required Environment
 
-Set these values in the hosting provider's secret/environment panel:
+Set these values in the hosting provider's secret/environment panel. Keep
+`DJANGO_DEBUG=false` in production; settings also default debug mode to off if
+this variable is omitted.
 
 ```text
 DJANGO_DEBUG=false
@@ -54,18 +56,34 @@ python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 ```
 
+The migration command must run against the same PostgreSQL database configured
+on the Render web service. To initialize or repair the deployed database, open
+the service's Shell and run `cd WMS` first when its Root Directory is blank,
+then run:
+
+```text
+python manage.py migrate --noinput
+```
+
+Do not use a local SQLite database for this step. For local migrations against
+Render, configure `DATABASE_URL` to the database's External Database URL first.
+
 The Django project is in the repository's `WMS` subdirectory. If the hosting
 service starts in the repository root (as Render does when its Root Directory
 is blank), set its start command to:
 
 ```text
-gunicorn --chdir WMS WMS.wsgi:application --bind 0.0.0.0:$PORT
+python WMS/manage.py migrate --noinput && gunicorn --chdir WMS WMS.wsgi:application --bind 0.0.0.0:$PORT
 ```
 
 Alternatively, set the service Root Directory to `WMS` and use
-`gunicorn WMS.wsgi:application --bind 0.0.0.0:$PORT`.
+`python manage.py migrate --noinput && gunicorn WMS.wsgi:application --bind 0.0.0.0:$PORT`.
 
 Configure the platform's health check to request `/`. Create the first privileged account with `python manage.py createsuperuser`. Do not run `seed_demo_data` in production; the command refuses to create its known-password demonstration users when `DEBUG` is disabled.
+
+The login page URL is `/accounts/login/`. A request to
+`/accounts/login/Django` is a different, unmatched URL and should return 404;
+use the login URL without the trailing `Django`.
 
 ## Before Opening Traffic
 
